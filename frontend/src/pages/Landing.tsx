@@ -9,7 +9,7 @@ import { useRef } from "react";
 import { api } from "@/api/client";
 import type { Book } from "@/api/types";
 import BookCard from "@/components/BookCard";
-import { BookOpen, Headphones, Users2, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, Headphones, Users2, Trophy } from "lucide-react";
 
 /* ──────────────────────────────────────────────────
    Constants
@@ -47,12 +47,6 @@ const FEATURES = [
     title: "Ком'юніті",
     body: "Рецензії, вкладені обговорення, підписки на авторів та читачів.",
     color: "rgba(120,110,200,0.9)",
-  },
-  {
-    icon: <Sparkles className="w-6 h-6" />,
-    title: "Розумні поради",
-    body: "Рекомендації на основі ваших улюблених жанрів та оцінок.",
-    color: "rgba(242,95,76,0.9)",
   },
   {
     icon: <Trophy className="w-6 h-6" />,

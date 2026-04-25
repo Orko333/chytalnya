@@ -16,6 +16,9 @@ from app import models
 from app.routers import auth, books, social, recommendations, achievements, author, admin
 from app.services.achievements import seed_achievements
 from app.services.catalog_sync import live_sync_books
+from passlib.context import CryptContext as _CryptContext
+
+_pwd = _CryptContext(schemes=["bcrypt"], deprecated="auto")
 from app.services.audio import populate_audio_urls
 from app.services.text_scraper import run_scraper_forever
 from app.services.booknet_scraper import run_booknet_forever
@@ -66,6 +69,19 @@ async def lifespan(app: FastAPI):
 
     with SessionLocal() as db:
         seed_achievements(db)
+        # Ensure at least one admin user exists so catalog warmup can assign owner_id
+        from app import models as _m
+        if not db.query(_m.User).filter(_m.User.role == "admin").first():
+            db.add(_m.User(
+                email="system@chytalnya.internal",
+                username="system",
+                password_hash=_pwd.hash("change-me-" + settings.SECRET_KEY[:8]),
+                role="admin",
+                is_active=True,
+                email_verified=True,
+            ))
+            db.commit()
+            log.info("Created system admin user for catalog ownership")
 
     asyncio.create_task(_background_catalog_warmup())
     asyncio.create_task(run_scraper_forever(initial_delay=30.0))
