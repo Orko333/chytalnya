@@ -102,7 +102,7 @@ def list_books(
     # Real-time ingestion from external sources when user searches catalog
     if q and offset == 0:
         try:
-            live_sync_books(db, query=q, limit=min(max(limit, 30), 100))
+            live_sync_books(db, query=q, limit=min(max(limit, 20), 40))
         except Exception:
             # External APIs should never break local catalog response
             db.rollback()

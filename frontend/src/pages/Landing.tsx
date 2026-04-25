@@ -10,6 +10,7 @@ import { api } from "@/api/client";
 import type { Book } from "@/api/types";
 import BookCard from "@/components/BookCard";
 import { BookOpen, Headphones, Users2, Trophy } from "lucide-react";
+import { useAuth } from "@/store/auth";
 
 /* ──────────────────────────────────────────────────
    Constants
@@ -101,6 +102,7 @@ function AnimatedSection({ children, className = "" }: { children: React.ReactNo
 }
 
 export default function Landing() {
+  const { user } = useAuth();
   const { data: trending = [] } = useQuery({
     queryKey: ["trending"],
     queryFn: async () => (await api.get<Book[]>("/api/recommendations/trending?limit=6")).data,
@@ -222,9 +224,11 @@ export default function Landing() {
               <BookOpen className="w-4 h-4" />
               До каталогу
             </Link>
-            <Link to="/register" className="btn-secondary text-sm px-6 py-3">
-              Створити акаунт →
-            </Link>
+            {!user && (
+              <Link to="/register" className="btn-secondary text-sm px-6 py-3">
+                Створити акаунт →
+              </Link>
+            )}
           </motion.div>
         </div>
 
@@ -417,12 +421,20 @@ export default function Landing() {
                 Безкоштовна реєстрація. Тисячі книг доступні одразу.
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <Link to="/register" className="btn-primary px-8 py-3.5 text-base">
-                  Реєстрація безкоштовно
-                </Link>
-                <Link to="/catalog" className="btn-secondary px-8 py-3.5 text-base">
-                  Переглянути каталог
-                </Link>
+                {!user ? (
+                  <>
+                    <Link to="/register" className="btn-primary px-8 py-3.5 text-base">
+                      Реєстрація безкоштовно
+                    </Link>
+                    <Link to="/catalog" className="btn-secondary px-8 py-3.5 text-base">
+                      Переглянути каталог
+                    </Link>
+                  </>
+                ) : (
+                  <Link to="/catalog" className="btn-primary px-8 py-3.5 text-base">
+                    Переглянути каталог
+                  </Link>
+                )}
               </div>
             </motion.div>
           </div>

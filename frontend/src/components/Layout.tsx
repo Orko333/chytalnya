@@ -5,7 +5,7 @@ import BackgroundAmbient from "@/components/BackgroundAmbient";
 import { BookOpen, Bell, LogOut, User as UserIcon, Settings, Menu, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const navLinks = (user: any) => [
   { to: "/catalog", label: "Каталог", always: true },
@@ -44,6 +44,12 @@ export default function Layout() {
     enabled: !!user,
     refetchInterval: 30000,
   });
+
+  const [dropOpen, setDropOpen] = useState(false);
+  const dropTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const openDrop = () => { clearTimeout(dropTimer.current); setDropOpen(true); };
+  const closeDrop = () => { dropTimer.current = setTimeout(() => setDropOpen(false), 120); };
 
   const links = navLinks(user);
 
@@ -147,9 +153,14 @@ export default function Layout() {
                 </Link>
 
                 {/* Avatar dropdown */}
-                <div className="relative group">
+                <div
+                  className="relative"
+                  onMouseEnter={openDrop}
+                  onMouseLeave={closeDrop}
+                >
                   <button
                     className="flex items-center gap-2 p-1 rounded-lg hover:bg-surface-100 transition-colors"
+                    onClick={() => setDropOpen((v) => !v)}
                   >
                     {user.avatar_url ? (
                       <img
@@ -173,42 +184,52 @@ export default function Layout() {
                     )}
                   </button>
 
-                  {/* Dropdown */}
-                  <div
-                    className="absolute right-0 mt-2 w-52 hidden group-hover:block hover:block"
-                    style={{
-                      background: "rgba(20,19,32,0.96)",
-                      border: "1px solid rgba(53,52,74,0.8)",
-                      borderRadius: "0.75rem",
-                      backdropFilter: "blur(20px)",
-                      boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
-                      padding: "4px",
-                    }}
-                  >
-                    <Link
-                      to={`/profile/${user.username}`}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-parchment-100 text-sm"
+                  {/* Dropdown — paddingTop bridges the gap so hover doesn't break */}
+                  {dropOpen && (
+                    <div
+                      className="absolute right-0 w-52"
+                      style={{ paddingTop: "8px", top: "100%" }}
+                      onMouseEnter={openDrop}
+                      onMouseLeave={closeDrop}
                     >
-                      <UserIcon className="w-4 h-4 text-amber-400" />
-                      Мій профіль
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-parchment-100 text-sm"
-                    >
-                      <Settings className="w-4 h-4 text-parchment-300" />
-                      Налаштування
-                    </Link>
-                    <div style={{ height: "1px", background: "rgba(53,52,74,0.6)", margin: "4px 8px" }} />
-                    <button
-                      onClick={() => { logout(); nav("/"); }}
-                      className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-sm"
-                      style={{ color: "#f25f4c" }}
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Вийти
-                    </button>
-                  </div>
+                      <div
+                        style={{
+                          background: "rgba(20,19,32,0.96)",
+                          border: "1px solid rgba(53,52,74,0.8)",
+                          borderRadius: "0.75rem",
+                          backdropFilter: "blur(20px)",
+                          boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+                          padding: "4px",
+                        }}
+                      >
+                        <Link
+                          to={`/profile/${user.username}`}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-parchment-100 text-sm"
+                          onClick={() => setDropOpen(false)}
+                        >
+                          <UserIcon className="w-4 h-4 text-amber-400" />
+                          Мій профіль
+                        </Link>
+                        <Link
+                          to="/settings"
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-parchment-100 text-sm"
+                          onClick={() => setDropOpen(false)}
+                        >
+                          <Settings className="w-4 h-4 text-parchment-300" />
+                          Налаштування
+                        </Link>
+                        <div style={{ height: "1px", background: "rgba(53,52,74,0.6)", margin: "4px 8px" }} />
+                        <button
+                          onClick={() => { setDropOpen(false); logout(); nav("/"); }}
+                          className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-surface-100 text-sm"
+                          style={{ color: "#f25f4c" }}
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Вийти
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

@@ -382,6 +382,14 @@ def live_sync_books(db: Session, query: str, limit: int = 40) -> int:
                 existing.text_url = item["text_url"]
             continue
 
+        # Only insert books that have a reliable readable text URL.
+        # Skip IA _djvu.txt (403 blocked) and books with no text at all.
+        text_url = item.get("text_url", "")
+        if not text_url:
+            continue
+        if "archive.org/download/" in text_url and "_djvu.txt" in text_url:
+            continue
+
         b = models.Book(
             title=title,
             author_name=author_name,
