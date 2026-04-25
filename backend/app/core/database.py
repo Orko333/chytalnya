@@ -22,6 +22,7 @@ def run_migrations() -> None:
     """Apply incremental schema changes that create_all won't handle for existing tables."""
     _ADD_COLUMNS = [
         ("books", "text_url", "VARCHAR(1000) DEFAULT ''"),
+        ("books", "text_content", "TEXT DEFAULT ''"),
     ]
     with engine.connect() as conn:
         for table, col, col_def in _ADD_COLUMNS:
@@ -44,3 +45,20 @@ def run_migrations() -> None:
         except Exception as e:
             conn.rollback()
             print(f"[migration] IA URL fix failed: {e}")
+
+        # Clear IA _djvu.txt URLs that are 403-blocked and have no cached text
+        # so the background scraper re-discovers proper text via Gutendex
+        try:
+            result = conn.execute(text(
+                "UPDATE books SET text_url = '' "
+                "WHERE text_url LIKE '%archive.org/download/%' "
+                "AND text_url LIKE '%_djvu.txt' "
+                "AND (text_path IS NULL OR text_path = '') "
+                "AND (text_content IS NULL OR text_content = '')"
+            ))
+            conn.commit()
+            if result.rowcount:
+                print(f"[migration] Cleared {result.rowcount} blocked IA _djvu.txt URLs → will retry via Gutendex")
+        except Exception as e:
+            conn.rollback()
+            print(f"[migration] IA djvu URL clear failed: {e}")

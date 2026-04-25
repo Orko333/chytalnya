@@ -88,8 +88,8 @@ def _save_text_file(content: bytes) -> str:
     return f"books/{name}"
 
 
-def _persist_to_db(book_id: int, rel_path: str, char_count: int, text_url: str = "") -> None:
-    """Sync: update book record with text_path (and optionally text_url)."""
+def _persist_to_db(book_id: int, rel_path: str, char_count: int, text_url: str = "", text_content: str = "") -> None:
+    """Sync: update book record with text_path (and optionally text_url and text_content)."""
     with SessionLocal() as db:
         b = db.query(models.Book).filter(models.Book.id == book_id).first()
         if b:
@@ -97,6 +97,8 @@ def _persist_to_db(book_id: int, rel_path: str, char_count: int, text_url: str =
             b.total_chars = char_count
             if text_url:
                 b.text_url = text_url
+            if text_content and not getattr(b, "text_content", ""):
+                b.text_content = text_content
             db.commit()
 
 
@@ -136,10 +138,39 @@ def _get_books_without_text(limit: int) -> list[tuple[int, str, str]]:
             .filter(
                 (models.Book.text_path == "") | models.Book.text_path.is_(None)
             )
+            .filter(
+                (models.Book.text_content == "") | models.Book.text_content.is_(None)
+            )
             .limit(limit)
             .all()
         )
         return [(r.id, r.title or "", r.author_name or "") for r in rows]
+
+
+def _reset_stale_text_paths(limit: int) -> int:
+    """Reset text_path='' for books where the file is gone (ephemeral disk wipe after redeploy)."""
+    reset = 0
+    with SessionLocal() as db:
+        rows = (
+            db.query(models.Book)
+            .filter(models.Book.text_path != "")
+            .filter(models.Book.text_path.isnot(None))
+            .filter(
+                (models.Book.text_content == "") | models.Book.text_content.is_(None)
+            )
+            .limit(limit * 5)  # check more rows to account for files that still exist
+            .all()
+        )
+        for b in rows:
+            if reset >= limit:
+                break
+            p = _UPLOAD_BASE.parent / b.text_path
+            if not p.exists():
+                b.text_path = ""
+                reset += 1
+        if reset:
+            db.commit()
+    return reset
 
 
 def _count_uncached() -> int:
@@ -207,7 +238,8 @@ async def _cache_from_url(book_id: int, text_url: str, client: httpx.AsyncClient
     if result is None:
         return "failed"
     rel_path = await asyncio.to_thread(_save_text_file, result)
-    await asyncio.to_thread(_persist_to_db, book_id, rel_path, len(result))
+    content_str = result.decode("utf-8", errors="replace")
+    await asyncio.to_thread(_persist_to_db, book_id, rel_path, len(result), text_content=content_str)
     log.info("Cached text for book %d (%d bytes) → %s", book_id, len(result), rel_path)
     return "cached"
 
@@ -216,7 +248,11 @@ async def _cache_from_gutendex(
     book_id: int, title: str, author: str, client: httpx.AsyncClient
 ) -> bool:
     """Search Gutendex, download first matching plain-text, save locally. Returns True on success."""
-    q = f"{title} {author}".strip()[:100]
+    # Clean IA-style formatting before searching:
+    # "Title ; Subtitle" → "Title", "Author, 1775-1817" → "Author"
+    title_clean = re.sub(r'\s*[;:].*$', '', title).strip()[:80]
+    author_clean = re.sub(r',\s*\d{4}.*$', '', author).strip()[:60]
+    q = f"{title_clean} {author_clean}".strip()[:100]
     if not q:
         return False
     try:
@@ -240,7 +276,8 @@ async def _cache_from_gutendex(
             content = await _fetch(url, client)
             if content:
                 rel_path = await asyncio.to_thread(_save_text_file, content)
-                await asyncio.to_thread(_persist_to_db, book_id, rel_path, len(content), url)
+                content_str = content.decode("utf-8", errors="replace")
+                await asyncio.to_thread(_persist_to_db, book_id, rel_path, len(content), url, text_content=content_str)
                 log.info(
                     "Gutendex found+cached book %d (%d bytes) → %s",
                     book_id, len(content), rel_path,
@@ -313,6 +350,11 @@ async def run_scraper_batch(batch_size: int = 150) -> dict:
         follow_redirects=True,
         headers={"User-Agent": "Chytalnya/1.0 (text archiver; contact: admin@chytalnya.ua)"},
     ) as client:
+
+        # Phase 0: reset stale text_path (file gone after ephemeral disk wipe on Render)
+        phase0_count = await asyncio.to_thread(_reset_stale_text_paths, batch_size)
+        if phase0_count:
+            log.info("Phase 0: reset %d stale text_paths (files gone after redeploy)", phase0_count)
 
         # Phase 1: books with existing text_url
         phase1 = await asyncio.to_thread(_get_books_with_url, batch_size)

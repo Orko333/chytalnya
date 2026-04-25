@@ -534,6 +534,31 @@ def _book_exists(booknet_url: str) -> bool:
         return db.query(models.Book).filter(models.Book.text_url == booknet_url).first() is not None
 
 
+def _book_text_status(booknet_url: str) -> Optional[tuple[str, int]]:
+    """
+    Returns:
+      ("skip", book_id) — book exists and has accessible text
+      ("refresh", book_id) — book exists but text is gone (ephemeral disk wipe)
+      None — book does not exist yet
+    """
+    with SessionLocal() as db:
+        b = db.query(models.Book).filter(models.Book.text_url == booknet_url).first()
+        if b is None:
+            return None
+        # Has text stored in DB (survives redeploy)
+        if getattr(b, "text_content", ""):
+            return ("skip", b.id)
+        # Has local file on disk
+        if b.text_path:
+            from pathlib import Path as _Path
+            from app.core.config import settings as _s
+            p = _Path(_s.UPLOAD_DIR).resolve() / b.text_path
+            if p.exists():
+                return ("skip", b.id)
+        # Book exists but text is gone — needs re-scrape
+        return ("refresh", b.id)
+
+
 def _save_text_file(content: str) -> str:
     """Write text to uploads/books/{uuid}.txt. Returns relative path."""
     _UPLOAD_BASE.mkdir(parents=True, exist_ok=True)
@@ -552,6 +577,7 @@ def _insert_book(
     text_path: str,
     text_url: str,
     owner_id: int,
+    text_content: str = "",
 ) -> int:
     """Insert a new Book record. Returns the new book id."""
     with SessionLocal() as db:
@@ -563,6 +589,7 @@ def _insert_book(
             cover_url=cover_local,
             text_path=text_path,
             text_url=text_url,
+            text_content=text_content,
             total_chars=0,  # will update after save
             language="uk",
             is_premium=False,
@@ -579,6 +606,17 @@ def _update_book_chars(book_id: int, char_count: int) -> None:
     with SessionLocal() as db:
         b = db.query(models.Book).filter(models.Book.id == book_id).first()
         if b:
+            b.total_chars = char_count
+            db.commit()
+
+
+def _refresh_book_text(book_id: int, text_path: str, text_content: str, char_count: int) -> None:
+    """Update text fields for a book that lost its text after a redeploy."""
+    with SessionLocal() as db:
+        b = db.query(models.Book).filter(models.Book.id == book_id).first()
+        if b:
+            b.text_path = text_path
+            b.text_content = text_content
             b.total_chars = char_count
             db.commit()
 
@@ -651,10 +689,24 @@ async def scrape_booknet(
                 slug_id = entry["slug_id"]
                 reader_url = f"{_BASE}/reader/{slug_id}"
 
-                # Skip already-imported
-                if _book_exists(reader_url):
-                    log.debug("Already imported: %s", slug_id)
-                    stats["skipped"] += 1
+                # Check if already imported (and whether text is still accessible)
+                text_status = _book_text_status(reader_url)
+                if text_status is not None:
+                    action, existing_id = text_status
+                    if action == "skip":
+                        log.debug("Already imported with text: %s", slug_id)
+                        stats["skipped"] += 1
+                        continue
+                    # action == "refresh": book exists but text was lost (ephemeral disk wipe)
+                    log.info("Re-scraping lost text for book %d: %s", existing_id, slug_id)
+                    text = await _scrape_book_text(client, slug_id)
+                    if text:
+                        text_path = await asyncio.to_thread(_save_text_file, text)
+                        await asyncio.to_thread(_refresh_book_text, existing_id, text_path, text, len(text))
+                        log.info("Refreshed text for book %d (%d chars)", existing_id, len(text))
+                        stats["imported"] += 1
+                    else:
+                        stats["failed"] += 1
                     continue
 
                 log.info("Importing %s — %s by %s", slug_id, entry["title"], entry["author"])
@@ -697,6 +749,7 @@ async def scrape_booknet(
                     text_path,
                     reader_url,
                     owner_id,
+                    text,  # text_content: stored in DB to survive redeploys
                 )
                 await asyncio.to_thread(_update_book_chars, book_id, len(text))
 

@@ -46,6 +46,7 @@ class Book(Base):
     audio_path = Column(String(500), default="")
     audio_url = Column(String(1000), default="")   # external audio URL (LibriVox etc.)
     text_url = Column(String(1000), default="")    # external text URL (Gutenberg, Archive.org etc.)
+    text_content = Column(Text, default="")          # full text cached in DB (survives ephemeral disk wipe)
     total_chars = Column(Integer, default=0)
     total_seconds = Column(Float, default=0.0)
     status = Column(String(20), default="published")  # draft|published|banned

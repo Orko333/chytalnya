@@ -253,14 +253,37 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
     db.add(models.BookEvent(book_id=b.id, user_id=current.id if current else None, event="read"))
     db.commit()
 
+    # 0. Text stored in DB (survives ephemeral disk loss on Render free tier)
+    if getattr(b, "text_content", ""):
+        return Response(
+            content=b.text_content.encode("utf-8"),
+            media_type="text/plain; charset=utf-8",
+            headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Text-Source": "db"},
+        )
+
     # 1. Local file takes priority
     if b.text_path:
         p = absolute_path(b.text_path)
         if p.exists():
+            try:
+                file_bytes = p.read_bytes()
+                # Backfill text_content so text survives future redeploys
+                if file_bytes and not getattr(b, "text_content", ""):
+                    b.text_content = file_bytes.decode("utf-8", errors="replace")
+                    db.commit()
+            except Exception:
+                db.rollback()
             return FileResponse(
                 p, media_type="text/plain; charset=utf-8",
                 headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
             )
+        else:
+            # File gone after ephemeral disk wipe — clear stale path so scraper re-processes
+            try:
+                b.text_path = ""
+                db.commit()
+            except Exception:
+                db.rollback()
 
     # Helper: fetch URL, auto-strip HTML, return content or None
     async def _fetch_text(url: str, client: httpx.AsyncClient) -> Optional[bytes]:
@@ -299,6 +322,7 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
                     rel = _save_text_locally(content)
                     b.text_path = rel
                     b.total_chars = len(content)
+                    b.text_content = content.decode("utf-8", errors="replace")
                     db.commit()
                 except Exception:
                     db.rollback()
@@ -307,10 +331,20 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
                     media_type="text/plain; charset=utf-8",
                     headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Text-Source": "external"},
                 )
+            else:
+                # URL failed — clear blocked IA _djvu.txt URLs so scraper re-discovers via Gutendex
+                if "archive.org/download/" in text_url and "_djvu.txt" in text_url:
+                    try:
+                        b.text_url = ""
+                        db.commit()
+                    except Exception:
+                        db.rollback()
+                    text_url = ""
 
         # 3. Gutendex real-time fallback: search for the book by title+author and grab plain text URL
-        title_q = (b.title or "").strip()
-        author_q = (b.author_name or "").strip()
+        # Clean IA-style formatting: "Title ; Subtitle" → "Title", "Author, 1775-1817" → "Author"
+        title_q = re.sub(r'\s*[;:].*$', '', (b.title or "")).strip()[:80]
+        author_q = re.sub(r',\s*\d{4}.*$', '', (b.author_name or "")).strip()[:60]
         search_q = f"{title_q} {author_q}".strip()
         if search_q:
             try:
@@ -338,6 +372,7 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
                                 b.text_url = candidate_url
                                 b.text_path = rel
                                 b.total_chars = len(content)
+                                b.text_content = content.decode("utf-8", errors="replace")
                                 db.commit()
                             except Exception:
                                 db.rollback()
