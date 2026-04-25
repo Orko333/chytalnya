@@ -71,7 +71,7 @@ function Particles() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {PARTICLES.map((p, i) => (
-        <motion.div
+        <div
           key={i}
           className="absolute rounded-full"
           style={{
@@ -81,17 +81,8 @@ function Particles() {
             height: p.s,
             background: "rgba(255,137,6,0.85)",
             boxShadow: `0 0 ${p.s * 4}px rgba(255,137,6,0.7)`,
-          }}
-          animate={{
-            y:       [-14, 14, -14],
-            opacity: [0.12, 0.9, 0.12],
-            scale:   [0.7, 1.5, 0.7],
-          }}
-          transition={{
-            duration: p.d,
-            delay:    p.delay,
-            repeat:   Infinity,
-            ease:     "easeInOut",
+            animation: `particle-drift ${p.d}s ${p.delay}s ease-in-out infinite`,
+            willChange: "transform, opacity",
           }}
         />
       ))}
@@ -144,17 +135,21 @@ export default function Landing() {
         }}
       >
         {/* Ambient blobs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.25, 0.45, 0.25] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        <div
           className="absolute -right-32 -top-32 w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,137,6,0.2), transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, rgba(255,137,6,0.2), transparent 70%)",
+            animation: "glow-pulse-kf 10s ease-in-out infinite",
+            willChange: "transform, opacity",
+          }}
         />
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.15, 0.3, 0.15] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        <div
           className="absolute -left-20 bottom-0 w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(76,71,111,0.4), transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, rgba(76,71,111,0.4), transparent 70%)",
+            animation: "glow-pulse-kf 12s 2s ease-in-out infinite",
+            willChange: "transform, opacity",
+          }}
         />
 
         {/* Particle field */}
