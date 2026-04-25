@@ -112,6 +112,11 @@ def list_books(
         query = query.filter(models.Book.status == status)
     else:
         query = query.filter(models.Book.status == "published")
+    # Always exclude Russian-language books from the public catalog
+    if not language:
+        query = query.filter(
+            (models.Book.language != "ru") | models.Book.language.is_(None)
+        )
     if q:
         like = f"%{q.lower()}%"
         query = query.filter(or_(

@@ -119,18 +119,18 @@ export default function BookCard({ book }: { book: Book }) {
         </div>
 
         {/* Info */}
-        <div className="p-3">
+        <div className="p-3 flex flex-col">
           <div
             className="font-semibold text-sm line-clamp-2 mb-0.5"
-            style={{ color: "#fffdf7", lineHeight: 1.35 }}
+            style={{ color: "#fffdf7", lineHeight: 1.35, minHeight: "2.7rem" }}
           >
             {book.title}
           </div>
-          <div className="text-xs mb-2" style={{ color: "#ccb88f" }}>
+          <div className="text-xs mb-2 line-clamp-1" style={{ color: "#ccb88f", minHeight: "1.1rem" }}>
             {book.author_name}
           </div>
           <div
-            className="flex items-center justify-between text-xs"
+            className="flex items-center justify-between text-xs mt-auto"
             style={{ color: "#b49a6a" }}
           >
             <span className="flex items-center gap-1">
