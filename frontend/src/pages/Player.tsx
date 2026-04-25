@@ -66,7 +66,14 @@ export default function Player() {
         const p = (await api.get<Progress>(`/api/books/${bookId}/progress`)).data;
         setProgress(p);
         const BASE = import.meta.env.VITE_API_URL || "";
-        setSrc(`${BASE}/api/books/${bookId}/stream/audio`);
+        const audioUrl = `${BASE}/api/books/${bookId}/stream/audio`;
+        // Pre-flight HEAD check to catch 403 (premium gate) before setting src
+        const check = await fetch(audioUrl, { method: "HEAD", headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` } });
+        if (check.status === 403) {
+          setErr("Ця книга доступна лише за підпискою. Поверніться до сторінки книги.");
+          return;
+        }
+        setSrc(audioUrl);
       } catch {
         setErr("Не вдалось завантажити аудіо");
       } finally {

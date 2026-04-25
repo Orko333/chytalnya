@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/api/client";
-import type { Book } from "@/api/types";
+import type { Book, AuthorSubPlan } from "@/api/types";
 import { Link } from "react-router-dom";
-import { Upload, BarChart3, Trash2, Pencil } from "lucide-react";
+import { Upload, BarChart3, Trash2, Pencil, Crown, Users, DollarSign, Loader2 } from "lucide-react";
 
 type EditForm = { title: string; author_name: string; description: string; genres: string; language: string };
 
@@ -59,6 +59,36 @@ export default function AuthorCabinet() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-books"] }),
   });
 
+  // ── Monetisation plan ──────────────────────────────────────────────────
+  const [showPlan, setShowPlan] = useState(false);
+  const [planForm, setPlanForm] = useState({ price_monthly: "", description: "", is_active: true });
+  const [planErr, setPlanErr] = useState("");
+
+  const { data: myPlan } = useQuery<AuthorSubPlan | null>({
+    queryKey: ["my-author-plan"],
+    queryFn: () => api.get<AuthorSubPlan>("/api/payments/author-plan/me").then((r) => r.data).catch(() => null),
+  });
+  const { data: planStats } = useQuery<{ subscribers: number; total_revenue: number }>({
+    queryKey: ["my-plan-stats"],
+    queryFn: () => api.get("/api/payments/author-plan/me/stats").then((r) => r.data),
+  });
+
+  const savePlan = useMutation({
+    mutationFn: () =>
+      api.put("/api/payments/author-plan/me", {
+        price_monthly: parseFloat(planForm.price_monthly),
+        description: planForm.description,
+        is_active: planForm.is_active,
+      }).then((r) => r.data),
+    onSuccess: (data: AuthorSubPlan) => {
+      setPlanErr("");
+      setShowPlan(false);
+      qc.setQueryData(["my-author-plan"], data);
+      qc.invalidateQueries({ queryKey: ["my-plan-stats"] });
+    },
+    onError: (e: any) => setPlanErr(e?.response?.data?.detail || "Помилка збереження"),
+  });
+
   const edit = useMutation({
     mutationFn: async () => {
       const genres_list = editForm.genres.split(",").map(g => g.trim()).filter(Boolean);
@@ -88,6 +118,114 @@ export default function AuthorCabinet() {
           <div className="card p-4 text-center"><div className="text-3xl font-bold">{summary.total_reviews}</div><div className="text-sm text-slate-500">Рецензій</div></div>
         </div>
       )}
+
+      {/* Monetisation section */}
+      <div className="rounded-xl border border-surface-700 bg-surface-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-700">
+          <div className="flex items-center gap-2 font-semibold">
+            <Crown className="w-5 h-5 text-amber-400"/>
+            Монетизація — Підписка на автора
+          </div>
+          <button
+            className="btn-ghost text-sm"
+            onClick={() => {
+              if (!showPlan && myPlan) {
+                setPlanForm({ price_monthly: String(myPlan.price_monthly), description: myPlan.description, is_active: myPlan.is_active });
+              }
+              setShowPlan(!showPlan);
+            }}
+          >
+            {showPlan ? "Скасувати" : myPlan ? "Редагувати" : "Налаштувати"}
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-surface-700 rounded-lg p-3 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 text-xs mb-1">
+                <Users className="w-3.5 h-3.5"/>Підписники
+              </div>
+              <div className="text-2xl font-bold">{planStats?.subscribers ?? 0}</div>
+            </div>
+            <div className="bg-surface-700 rounded-lg p-3 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 text-xs mb-1">
+                <DollarSign className="w-3.5 h-3.5"/>Дохід
+              </div>
+              <div className="text-2xl font-bold">${(planStats?.total_revenue ?? 0).toFixed(2)}</div>
+            </div>
+          </div>
+
+          {/* Current plan info */}
+          {myPlan && !showPlan && (
+            <div className="bg-surface-700 rounded-lg p-3 text-sm space-y-1">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${myPlan.is_active ? "bg-green-400" : "bg-slate-400"}`}/>
+                <span className="text-slate-300 font-medium">
+                  {myPlan.is_active ? "Активна" : "Вимкнена"} · ${myPlan.price_monthly.toFixed(2)}/міс
+                </span>
+              </div>
+              {myPlan.description && <p className="text-slate-400 pl-4">{myPlan.description}</p>}
+            </div>
+          )}
+
+          {/* Plan form */}
+          {showPlan && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Ціна на місяць (USD)</label>
+                <input
+                  className="input"
+                  type="number"
+                  step="0.01"
+                  min="0.99"
+                  max="99.99"
+                  placeholder="4.99"
+                  value={planForm.price_monthly}
+                  onChange={(e) => setPlanForm({ ...planForm, price_monthly: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Опис підписки</label>
+                <textarea
+                  className="input"
+                  rows={2}
+                  placeholder="Що отримують підписники?"
+                  value={planForm.description}
+                  onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
+                  maxLength={500}
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={planForm.is_active}
+                  onChange={(e) => setPlanForm({ ...planForm, is_active: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                Підписка активна (видима читачам)
+              </label>
+              {planErr && <div className="text-red-400 text-sm">{planErr}</div>}
+              <div className="flex gap-2">
+                <button
+                  className="btn-primary text-sm flex items-center gap-2"
+                  disabled={savePlan.isPending || !planForm.price_monthly}
+                  onClick={() => { setPlanErr(""); savePlan.mutate(); }}
+                >
+                  {savePlan.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : null}
+                  Зберегти
+                </button>
+                <button className="btn-ghost text-sm" onClick={() => setShowPlan(false)}>Скасувати</button>
+              </div>
+            </div>
+          )}
+
+          {!myPlan && !showPlan && (
+            <p className="text-sm text-slate-500 text-center py-2">
+              Налаштуйте платну підписку, щоб монетизувати преміум-книги
+            </p>
+          )}
+        </div>
+      </div>
 
       {show && (
         <div className="card p-5 space-y-3">

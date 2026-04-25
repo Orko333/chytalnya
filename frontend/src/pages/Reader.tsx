@@ -208,8 +208,12 @@ export default function Reader() {
         setSavedAudioPos(p.audio_position || 0);
         const r = await api.get(`/api/books/${bookId}/stream/text`, { responseType: "text" });
         setRawText(String(r.data));
-      } catch {
-        setErr("Не вдалось завантажити текст");
+      } catch (e: any) {
+        if (e?.response?.status === 403) {
+          setErr("Ця книга доступна лише за підпискою. Поверніться до сторінки книги.");
+        } else {
+          setErr("Не вдалось завантажити текст");
+        }
       }
     })();
   }, [bookId]);
@@ -247,7 +251,7 @@ export default function Reader() {
   if (err) return (
     <div className="flex flex-col items-center justify-center gap-4 p-8 text-center" style={{ color: "#ccb88f" }}>
       <BookOpen className="w-12 h-12 opacity-20" style={{ color: "#ff8906" }} />
-      <p className="font-serif text-sm">Текст цієї книги недоступний</p>
+      <p className="font-serif text-sm">{err}</p>
       <Link
         to={`/books/${bookId}`}
         className="text-xs px-4 py-2 rounded-full transition-opacity hover:opacity-75"

@@ -1,11 +1,19 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
-import type { Review } from "@/api/types";
-import { Star } from "lucide-react";
+import type { Review, AuthorSubPlan, AuthorSubStatus } from "@/api/types";
+import { useAuth } from "@/store/auth";
+import { Star, Crown, CheckCircle2, Calendar, Loader2 } from "lucide-react";
+import PaymentModal from "@/components/PaymentModal";
+import { format } from "date-fns";
+import { uk } from "date-fns/locale";
 
 export default function Profile() {
   const { username } = useParams();
+  const { user: me } = useAuth();
+  const qc = useQueryClient();
+  const [subOpen, setSubOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", username],
@@ -18,6 +26,27 @@ export default function Profile() {
     enabled: !!username,
   });
 
+  const authorId: number | undefined = profile?.user?.id;
+  const isAuthor = profile?.user?.role === "author" || profile?.user?.role === "admin";
+  const isSelf = me?.id === authorId;
+
+  const { data: authorPlan } = useQuery<AuthorSubPlan | null>({
+    queryKey: ["author-plan", authorId],
+    queryFn: () => api.get<AuthorSubPlan>(`/api/payments/author-plan/${authorId}`).then((r) => r.data).catch(() => null),
+    enabled: !!authorId && isAuthor && !isSelf,
+  });
+
+  const { data: myAuthorSub } = useQuery<AuthorSubStatus | null>({
+    queryKey: ["author-sub", authorId],
+    queryFn: () => api.get<AuthorSubStatus>(`/api/payments/author-sub/${authorId}`).then((r) => r.data).catch(() => null),
+    enabled: !!authorId && !!me && !isSelf,
+  });
+
+  const cancelAuthorSub = useMutation({
+    mutationFn: () => api.post(`/api/payments/author/${authorId}/cancel`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["author-sub", authorId] }),
+  });
+
   if (!profile) return <div className="p-8 text-slate-500">Завантаження…</div>;
 
   const u = profile.user;
@@ -26,6 +55,12 @@ export default function Profile() {
     author: "Автор",
     admin: "Адміністратор",
   };
+
+  const isSubActive = myAuthorSub?.status === "active";
+  const subEndDate = myAuthorSub?.end_date
+    ? format(new Date(myAuthorSub.end_date), "d MMMM yyyy", { locale: uk })
+    : null;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="card p-6 flex items-center gap-6">
@@ -44,8 +79,65 @@ export default function Profile() {
             <span><b>{profile.reviews_count}</b> рецензій</span>
           </div>
         </div>
-
       </div>
+
+      {/* Author subscription card */}
+      {isAuthor && !isSelf && authorPlan && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 text-amber-400 font-semibold mb-1">
+                <Crown className="w-5 h-5"/>
+                Підписка на автора
+              </div>
+              {authorPlan.description && (
+                <p className="text-sm text-slate-400 mb-1">{authorPlan.description}</p>
+              )}
+              <div className="text-lg font-bold">
+                ${authorPlan.price_monthly.toFixed(2)}
+                <span className="text-sm font-normal text-slate-400">/міс</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              {isSubActive ? (
+                <>
+                  <div className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4"/>
+                    Ви підписані
+                  </div>
+                  {subEndDate && (
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <Calendar className="w-3.5 h-3.5"/>
+                      до {subEndDate}
+                    </div>
+                  )}
+                  <button
+                    className="btn-ghost text-xs text-red-400 border-red-500/30 hover:bg-red-500/10 mt-1"
+                    onClick={() => cancelAuthorSub.mutate()}
+                    disabled={cancelAuthorSub.isPending}
+                  >
+                    {cancelAuthorSub.isPending ? <Loader2 className="w-3 h-3 animate-spin"/> : "Скасувати підписку"}
+                  </button>
+                </>
+              ) : (
+                me ? (
+                  <button
+                    className="btn-primary text-sm flex items-center gap-2"
+                    onClick={() => setSubOpen(true)}
+                  >
+                    <Crown className="w-4 h-4"/>
+                    Підписатись — ${authorPlan.price_monthly.toFixed(2)}/міс
+                  </button>
+                ) : (
+                  <Link to="/login" className="btn-primary text-sm">
+                    Увійдіть, щоб підписатись
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <h2 className="text-xl font-bold mb-3">Рецензії користувача</h2>
@@ -61,6 +153,19 @@ export default function Profile() {
           ))}
         </div>
       </div>
+
+      {authorId && (
+        <PaymentModal
+          open={subOpen}
+          onClose={() => setSubOpen(false)}
+          checkoutUrl={`/api/payments/author/${authorId}/checkout`}
+          confirmUrl={`/api/payments/author/${authorId}/confirm`}
+          onSuccess={() => {
+            setSubOpen(false);
+            qc.invalidateQueries({ queryKey: ["author-sub", authorId] });
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -33,3 +33,29 @@ export type NotificationT = {
 };
 export type Recommendation = { book: Book; reason: string; score: number };
 export type FeedItem = { kind: string; created_at: string; actor: UserPublic; payload: any };
+
+// ── Subscriptions & Payments ──────────────────────────────────────────────────
+export type SubStatus = {
+  plan_code: string; status: string; end_date: string | null;
+};
+export type Plan = {
+  code: string; name: string; price_monthly: number; features: string[];
+};
+export type CheckoutInit = {
+  payment_id: number; amount: number; currency: string; description: string;
+};
+export type PaymentItem = {
+  id: number; kind: string; amount: number; currency: string;
+  status: string; card_last4: string; description: string; created_at: string;
+};
+export type AuthorSubPlan = {
+  author_id: number; price_monthly: number; description: string; is_active: boolean;
+};
+export type AuthorSubStatus = {
+  author_id: number; status: string; end_date: string | null;
+};
+export type BookAccess = {
+  can_access: boolean; reason: string; is_premium: boolean;
+  requires: "login" | "platform_premium" | "author_sub" | null;
+  author_sub_price: number | null; platform_sub_price: number;
+};

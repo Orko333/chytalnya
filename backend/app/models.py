@@ -205,3 +205,51 @@ class BookEvent(Base):
     event = Column(String(32), nullable=False)  # view|read|listen|complete|download
     value = Column(Float, default=0.0)
     created_at = Column(DateTime, default=utcnow)
+
+
+# ===== Payments =====
+
+class Payment(Base):
+    __tablename__ = "payments"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind = Column(String(32), nullable=False)       # platform_premium | author_sub
+    target_id = Column(Integer, nullable=True)      # author_id for author_sub
+    amount = Column(Float, nullable=False)
+    currency = Column(String(8), default="USD")
+    status = Column(String(32), default="pending")  # pending | succeeded | failed
+    fake_pi_id = Column(String(120), default="")
+    card_last4 = Column(String(4), default="")
+    description = Column(String(300), default="")
+    created_at = Column(DateTime, default=utcnow)
+
+    user = relationship("User")
+
+
+class AuthorSubPlan(Base):
+    """Author's paid subscription plan (like Patreon)."""
+    __tablename__ = "author_sub_plans"
+    id = Column(Integer, primary_key=True)
+    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    price_monthly = Column(Float, default=2.99)
+    description = Column(String(500), default="")
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=utcnow)
+
+    author = relationship("User")
+
+
+class UserAuthorSub(Base):
+    """User's subscription to a specific author."""
+    __tablename__ = "user_author_subs"
+    __table_args__ = (UniqueConstraint("user_id", "author_id", name="uq_user_author_sub"),)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(32), default="active")  # active | canceled
+    start_date = Column(DateTime, default=utcnow)
+    end_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+    user = relationship("User", foreign_keys=[user_id])
+    author = relationship("User", foreign_keys=[author_id])

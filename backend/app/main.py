@@ -14,6 +14,7 @@ from app.core.storage import save_upload
 from app.deps import get_current_user
 from app import models
 from app.routers import auth, books, social, recommendations, achievements, author, admin
+from app.routers import subscriptions, payments
 from app.services.achievements import seed_achievements
 from app.services.catalog_sync import live_sync_books
 from passlib.context import CryptContext as _CryptContext
@@ -116,6 +117,8 @@ app.include_router(recommendations.router)
 app.include_router(achievements.router)
 app.include_router(author.router)
 app.include_router(admin.router)
+app.include_router(subscriptions.router)
+app.include_router(payments.router)
 
 
 # Avatar upload

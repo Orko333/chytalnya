@@ -21,6 +21,7 @@ import AuthorCabinet from "@/pages/AuthorCabinet";
 import Notifications from "@/pages/Notifications";
 import Favorites from "@/pages/Favorites";
 import Settings from "@/pages/Settings";
+import Subscriptions from "@/pages/Subscriptions";
 
 function Guarded({ children, roles }: { children: JSX.Element; roles?: string[] }) {
   const { user, loading } = useAuth();
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/achievements" element={<Guarded><Achievements /></Guarded>} />
         <Route path="/notifications" element={<Guarded><Notifications /></Guarded>} />
         <Route path="/settings" element={<Guarded><Settings /></Guarded>} />
+        <Route path="/subscriptions" element={<Guarded><Subscriptions /></Guarded>} />
 
         <Route path="/author" element={<Guarded roles={["author", "admin"]}><AuthorCabinet /></Guarded>} />
         <Route path="/author/analytics/:id" element={<Guarded roles={["author", "admin"]}><AuthorAnalytics /></Guarded>} />

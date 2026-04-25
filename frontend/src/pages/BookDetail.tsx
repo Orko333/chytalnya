@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
-import type { Book, Review, Comment } from "@/api/types";
+import type { Book, Review, Comment, BookAccess } from "@/api/types";
 import { useAuth } from "@/store/auth";
-import { Star, Headphones, FileText, Heart, MessageCircle, Flag, Trash2 } from "lucide-react";
+import { Star, Headphones, FileText, Heart, MessageCircle, Flag, Trash2, Crown, Lock } from "lucide-react";
+import PaymentModal from "@/components/PaymentModal";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -14,10 +15,16 @@ export default function BookDetail() {
   const nav = useNavigate();
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
+  const [authorSubOpen, setAuthorSubOpen] = useState(false);
 
   const { data: book } = useQuery({
     queryKey: ["book", bookId],
     queryFn: async () => (await api.get<Book>(`/api/books/${bookId}`)).data,
+    enabled: !!bookId,
+  });
+  const { data: access } = useQuery<BookAccess>({
+    queryKey: ["book-access", bookId],
+    queryFn: () => api.get<BookAccess>(`/api/books/${bookId}/access`).then((r) => r.data),
     enabled: !!bookId,
   });
   const { data: reviews = [] } = useQuery({
@@ -51,16 +58,55 @@ export default function BookDetail() {
   const alreadyReviewed = reviews.some((r) => r.user.id === user?.id);
 
   return (
-    <div className="grid md:grid-cols-[280px_1fr] gap-8">
+    <>
+      <div className="grid md:grid-cols-[280px_1fr] gap-8">
       <aside>
-        <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-300 mb-4 flex items-center justify-center">
+        <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-300 mb-4 flex items-center justify-center relative">
           {book.cover_url ? <img src={fileUrl(book.cover_url)} alt="" className="w-full h-full object-cover"/> : (
             <span className="text-brand-900 text-5xl font-serif">{book.title.slice(0,2)}</span>
           )}
+          {book.is_premium && (
+            <div className="absolute top-2 right-2 bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Crown className="w-3 h-3"/>ПРЕМІУМ
+            </div>
+          )}
         </div>
         <div className="space-y-2">
-          {book.has_text && <Link to={`/reader/${book.id}`} className="btn-primary w-full"><FileText className="w-4 h-4"/>Читати</Link>}
-          {(book.has_audio || book.has_text) && <Link to={`/player/${book.id}`} className="btn-secondary w-full"><Headphones className="w-4 h-4"/>Слухати</Link>}
+          {/* Paywall if premium and no access */}
+          {access && access.is_premium && !access.can_access ? (
+            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                <Lock className="w-4 h-4"/>
+                Преміум книга
+              </div>
+              <p className="text-xs text-slate-400">Для читання потрібна підписка</p>
+              {access.requires === "login" && (
+                <Link to="/login" className="btn-primary w-full text-sm flex items-center justify-center gap-2">
+                  Увійдіть, щоб читати
+                </Link>
+              )}
+              {access.requires === "platform_premium" && (
+                <Link to="/subscriptions" className="btn-primary w-full text-sm flex items-center justify-center gap-2">
+                  <Crown className="w-4 h-4"/>
+                  Преміум — ${access.platform_sub_price}/міс
+                </Link>
+              )}
+              {access.requires === "author_sub" && access.author_sub_price && (
+                <button
+                  className="btn-primary w-full text-sm flex items-center justify-center gap-2"
+                  onClick={() => setAuthorSubOpen(true)}
+                >
+                  <Crown className="w-4 h-4"/>
+                  Підписка на автора — ${access.author_sub_price}/міс
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {book.has_text && <Link to={`/reader/${book.id}`} className="btn-primary w-full"><FileText className="w-4 h-4"/>Читати</Link>}
+              {(book.has_audio || book.has_text) && <Link to={`/player/${book.id}`} className="btn-secondary w-full"><Headphones className="w-4 h-4"/>Слухати</Link>}
+            </>
+          )}
           {user && <button onClick={() => toggleFav.mutate()} className="btn-secondary w-full"><Heart className={`w-4 h-4 ${fav?"fill-red-500 text-red-500":""}`}/>{fav?"В обраному":"Додати в обране"}</button>}
           {user && <button onClick={() => reportBook.mutate()} className="btn-ghost w-full text-red-600"><Flag className="w-4 h-4"/>Поскаржитись</button>}
           {user?.id === book.owner_id && <Link to={`/author/analytics/${book.id}`} className="btn-secondary w-full">Аналітика</Link>}
@@ -103,6 +149,21 @@ export default function BookDetail() {
         </section>
       </div>
     </div>
+
+    {/* Author subscription modal */}
+    {book.owner_id && (
+      <PaymentModal
+        open={authorSubOpen}
+        onClose={() => setAuthorSubOpen(false)}
+        checkoutUrl={`/api/payments/author/${book.owner_id}/checkout`}
+        confirmUrl={`/api/payments/author/${book.owner_id}/confirm`}
+        onSuccess={() => {
+          setAuthorSubOpen(false);
+          qc.invalidateQueries({ queryKey: ["book-access", bookId] });
+        }}
+      />
+    )}
+    </>
   );
 }
 

@@ -2,6 +2,7 @@ import mimetypes
 import os
 import re
 import uuid
+from datetime import datetime, timezone
 from html.parser import HTMLParser as _HTMLParser
 from pathlib import Path
 from typing import Optional, List
@@ -21,6 +22,14 @@ from app.services.catalog_sync import live_sync_books
 from app.utils import book_to_out
 
 router = APIRouter(prefix="/api/books", tags=["books"])
+
+
+# ── Premium access helper ─────────────────────────────────────────────────────
+
+def _has_book_access(book: models.Book, user: Optional[models.User], db: Session) -> bool:
+    """Return True if user is allowed to access a (possibly premium) book."""
+    from app.routers.payments import has_book_access
+    return has_book_access(book, user, db)
 
 
 
@@ -263,6 +272,9 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
     if not b:
         raise HTTPException(404, "Book not found")
 
+    if not _has_book_access(b, current, db):
+        raise HTTPException(403, "Ця книга доступна лише за передплатою")
+
     db.add(models.BookEvent(book_id=b.id, user_id=current.id if current else None, event="read"))
     db.commit()
 
@@ -408,6 +420,9 @@ async def stream_audio(book_id: int, request: Request, db: Session = Depends(get
     b = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not b:
         raise HTTPException(404, "Book not found")
+
+    if not _has_book_access(b, current, db):
+        raise HTTPException(403, "Ця книга доступна лише за передплатою")
 
     db.add(models.BookEvent(book_id=b.id, user_id=current.id if current else None, event="listen"))
     db.commit()
@@ -589,6 +604,64 @@ def my_completed_ids(db: Session = Depends(get_db), current: models.User = Depen
         .all()
     )
     return {"ids": [r[0] for r in ids]}
+
+
+@router.get("/{book_id}/access", response_model=schemas.BookAccessOut)
+def book_access(
+    book_id: int,
+    db: Session = Depends(get_db),
+    current: Optional[models.User] = Depends(get_current_user_optional),
+):
+    """Check whether current user may access a book's content."""
+    from app.routers.payments import has_book_access
+    b = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if not b or b.status == "banned":
+        raise HTTPException(404, "Book not found")
+    if not b.is_premium:
+        return schemas.BookAccessOut(can_access=True, reason="free", is_premium=False)
+    if not current:
+        return schemas.BookAccessOut(can_access=False, reason="", is_premium=True, requires="login")
+    if current.role == "admin":
+        return schemas.BookAccessOut(can_access=True, reason="admin", is_premium=True)
+    if b.owner_id == current.id:
+        return schemas.BookAccessOut(can_access=True, reason="owner", is_premium=True)
+
+    now = datetime.now(timezone.utc)
+
+    # Platform premium
+    sub = db.query(models.UserSubscription).filter_by(
+        user_id=current.id, plan_code="premium", status="active"
+    ).first()
+    if sub:
+        ed = sub.end_date
+        if ed and ed.tzinfo is None:
+            ed = ed.replace(tzinfo=timezone.utc)
+        if ed is None or ed > now:
+            return schemas.BookAccessOut(can_access=True, reason="platform_premium", is_premium=True)
+
+    # Author subscription
+    a_sub = db.query(models.UserAuthorSub).filter_by(
+        user_id=current.id, author_id=b.owner_id, status="active"
+    ).first()
+    if a_sub:
+        ed = a_sub.end_date
+        if ed and ed.tzinfo is None:
+            ed = ed.replace(tzinfo=timezone.utc)
+        if ed is None or ed > now:
+            return schemas.BookAccessOut(can_access=True, reason="author_sub", is_premium=True)
+
+    # Determine what's needed
+    author_plan = db.query(models.AuthorSubPlan).filter_by(
+        author_id=b.owner_id, is_active=True
+    ).first()
+    return schemas.BookAccessOut(
+        can_access=False,
+        reason="",
+        is_premium=True,
+        requires="author_sub" if author_plan else "platform_premium",
+        author_sub_price=author_plan.price_monthly if author_plan else None,
+        platform_sub_price=4.99,
+    )
 
 
 # ===== Favorites =====

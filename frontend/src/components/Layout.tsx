@@ -2,7 +2,7 @@ import { Outlet, Link, NavLink, useNavigate, useLocation } from "react-router-do
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/store/auth";
 import BackgroundAmbient from "@/components/BackgroundAmbient";
-import { BookOpen, Bell, LogOut, User as UserIcon, Settings, Menu, X } from "lucide-react";
+import { BookOpen, Bell, LogOut, User as UserIcon, Settings, Menu, X, Crown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
 import { useState, useEffect, useRef } from "react";
@@ -11,6 +11,7 @@ const navLinks = (user: any) => [
   { to: "/catalog", label: "Каталог", always: true },
   { to: "/favorites", label: "Обране", auth: true },
   { to: "/achievements", label: "Досягнення", auth: true },
+  { to: "/subscriptions", label: "Підписки", auth: true },
   { to: "/author", label: "Кабінет автора", role: ["author", "admin"] },
   { to: "/admin", label: "Адмін", role: ["admin"] },
 ].filter((l) => {

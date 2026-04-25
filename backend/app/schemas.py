@@ -200,6 +200,64 @@ class CheckoutOut(BaseModel):
     session_id: str
 
 
+# ===== Payments =====
+class FakeCardIn(BaseModel):
+    card_number: str = Field(min_length=13, max_length=23)  # allows spaces/dashes
+    expiry: str = Field(pattern=r"^\d{2}/\d{2}$")
+    cvv: str = Field(min_length=3, max_length=4, pattern=r"^\d{3,4}$")
+    cardholder: str = Field(min_length=2, max_length=120)
+
+
+class CheckoutInitOut(BaseModel):
+    payment_id: int
+    amount: float
+    currency: str
+    description: str
+
+
+class ConfirmIn(FakeCardIn):
+    payment_id: int
+
+
+class PaymentOut(BaseModel):
+    id: int
+    kind: str
+    amount: float
+    currency: str
+    status: str
+    card_last4: str
+    description: str
+    created_at: datetime
+
+
+class AuthorSubPlanOut(BaseModel):
+    author_id: int
+    price_monthly: float
+    description: str
+    is_active: bool
+
+
+class AuthorSubPlanSet(BaseModel):
+    price_monthly: float = Field(ge=0.99, le=99.99)
+    description: str = Field(default="", max_length=500)
+    is_active: bool = True
+
+
+class UserAuthorSubOut(BaseModel):
+    author_id: int
+    status: str
+    end_date: Optional[datetime] = None
+
+
+class BookAccessOut(BaseModel):
+    can_access: bool
+    reason: str          # free | owner | admin | platform_premium | author_sub
+    is_premium: bool
+    requires: Optional[str] = None   # None | platform_premium | author_sub | login
+    author_sub_price: Optional[float] = None
+    platform_sub_price: float = 4.99
+
+
 # ===== Admin =====
 class ReportCreate(BaseModel):
     content_type: str
