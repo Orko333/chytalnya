@@ -1,0 +1,669 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link [ref=e8] [cursor=pointer]:
+          - /url: /uk
+          - img [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12] [cursor=pointer]:
+            - generic [ref=e13]: Книги
+            - img [ref=e14]
+          - link "Конкурси" [ref=e16] [cursor=pointer]:
+            - /url: /contests
+          - link "Блоги" [ref=e17] [cursor=pointer]:
+            - /url: /blogs
+          - link "Колекції" [ref=e18] [cursor=pointer]:
+            - /url: /collections
+          - link "Бібліотека" [ref=e19] [cursor=pointer]:
+            - /url: /site/library
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic:
+            - img
+          - textbox "Пошук" [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24] [cursor=pointer]: Вхід
+          - generic [ref=e25] [cursor=pointer]: Реєстрація
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: Жанри
+        - generic [ref=e31]:
+          - link "Всі жанри" [ref=e33] [cursor=pointer]:
+            - /url: /top/all
+          - link "Міське фентезі" [ref=e35] [cursor=pointer]:
+            - /url: /top/miske-fentezi
+          - link "Фентезі" [ref=e37] [cursor=pointer]:
+            - /url: /top/fentezi
+          - link "Сучасна проза" [ref=e39] [cursor=pointer]:
+            - /url: /top/suchasna-proza
+          - link "Жіночий роман" [ref=e41] [cursor=pointer]:
+            - /url: /top/jenskaya-proza
+          - link "Любовні романи" [ref=e43] [cursor=pointer]:
+            - /url: /top/lyubovnye-romany
+          - link "Підліткова проза" [ref=e45] [cursor=pointer]:
+            - /url: /top/pidlitkova-proza
+          - link "Фантастика" [ref=e47] [cursor=pointer]:
+            - /url: /top/fantastika
+          - link "Історичний роман" [ref=e49] [cursor=pointer]:
+            - /url: /top/istoricheskiy-roman
+          - link "Фанфік" [ref=e51] [cursor=pointer]:
+            - /url: /top/fanfik
+          - link "Бойовик" [ref=e53] [cursor=pointer]:
+            - /url: /top/boevik
+          - link "Детектив" [ref=e55] [cursor=pointer]:
+            - /url: /top/detektiv
+          - link "Трилер" [ref=e57] [cursor=pointer]:
+            - /url: /top/triller
+          - link "Гумор" [ref=e59] [cursor=pointer]:
+            - /url: /top/humor
+          - link "Містика/Жахи" [ref=e61] [cursor=pointer]:
+            - /url: /top/mistikaujasy
+          - link "Не художня література" [ref=e63] [cursor=pointer]:
+            - /url: /top/non-fiction
+          - link "Дитяча література" [ref=e65] [cursor=pointer]:
+            - /url: /top/dityacha-literatura
+          - link "Різне" [ref=e67] [cursor=pointer]:
+            - /url: /top/raznoe
+          - link "Любовне фентезі" [ref=e69] [cursor=pointer]:
+            - /url: /top/lyubovne-fentezi
+          - link "Короткий любовний роман" [ref=e71] [cursor=pointer]:
+            - /url: /top/korotkiy-lyubovnyy-roman
+          - link "Історичний любовний роман" [ref=e73] [cursor=pointer]:
+            - /url: /top/istorichniy-lyubovnyy-roman
+          - link "Сучасний любовний роман" [ref=e75] [cursor=pointer]:
+            - /url: /top/suchasniy-lyubovnyy-roman
+          - link "Любовна фантастика" [ref=e77] [cursor=pointer]:
+            - /url: /top/lyubovna-fantastika
+          - link "Бойова фантастика" [ref=e79] [cursor=pointer]:
+            - /url: /top/boeva-fantastika
+          - link "Наукова фантастика" [ref=e81] [cursor=pointer]:
+            - /url: /top/naukova-fantastika
+          - link "Постапокаліпсис" [ref=e83] [cursor=pointer]:
+            - /url: /top/postapokalipsis
+          - link "Антиутопія" [ref=e85] [cursor=pointer]:
+            - /url: /top/antiutopiya
+          - link "Бойове фентезі" [ref=e87] [cursor=pointer]:
+            - /url: /top/boeve-fentezi
+          - link "Поезія" [ref=e89] [cursor=pointer]:
+            - /url: /top/poesiya
+          - link "Молодіжна проза" [ref=e91] [cursor=pointer]:
+            - /url: /top/molodejnaya-proza
+      - generic [ref=e92]:
+        - generic [ref=e93]: Добірки
+        - generic [ref=e94]:
+          - link "За популярністю" [ref=e96] [cursor=pointer]:
+            - /url: /top/all
+          - link "За оновленнями" [ref=e98] [cursor=pointer]:
+            - /url: /top/latest
+          - link "Новинки" [ref=e100] [cursor=pointer]:
+            - /url: /top/latest-new
+          - link "Бестселери" [ref=e102] [cursor=pointer]:
+            - /url: /top/best
+          - link "Колекції" [ref=e104] [cursor=pointer]:
+            - /url: /collections
+  - main [ref=e105]:
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - link "Фентезі" [ref=e110] [cursor=pointer]:
+          - /url: /genre/fentezi
+        - link "Міське фентезі" [ref=e111] [cursor=pointer]:
+          - /url: /genre/miske-fentezi
+        - link "Сучасна проза" [ref=e112] [cursor=pointer]:
+          - /url: /genre/suchasna-proza
+        - link "Жіночий роман" [ref=e113] [cursor=pointer]:
+          - /url: /genre/jenskaya-proza
+        - link "Любовні романи" [ref=e114] [cursor=pointer]:
+          - /url: /genre/lyubovnye-romany
+        - link "Підліткова проза" [ref=e115] [cursor=pointer]:
+          - /url: /genre/pidlitkova-proza
+        - link "Фантастика" [ref=e116] [cursor=pointer]:
+          - /url: /genre/fantastika
+        - link "Історичний роман" [ref=e117] [cursor=pointer]:
+          - /url: /genre/istoricheskiy-roman
+        - link "Фанфік" [ref=e118] [cursor=pointer]:
+          - /url: /genre/fanfik
+        - link "Бойовик" [ref=e119] [cursor=pointer]:
+          - /url: /genre/boevik
+        - link "Гумор" [ref=e120] [cursor=pointer]:
+          - /url: /genre/humor
+        - link "Детектив" [ref=e121] [cursor=pointer]:
+          - /url: /genre/detektiv
+        - link "Трилер" [ref=e122] [cursor=pointer]:
+          - /url: /genre/triller
+        - link "Містика/Жахи" [ref=e123] [cursor=pointer]:
+          - /url: /genre/mistikaujasy
+        - link "Дитяча література" [ref=e124] [cursor=pointer]:
+          - /url: /genre/dityacha-literatura
+        - link "Показати ще " [ref=e125] [cursor=pointer]:
+          - /url: javascript:void(0);
+          - text: Показати ще
+          - generic [ref=e126]: 
+      - text: 
+    - generic [ref=e128]:
+      - generic [ref=e131]:
+        - text: ТОП в різних жанрах
+        - text: Підбірка популярних книг
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - link [ref=e134] [cursor=pointer]:
+            - /url: /book/pozaplanove-batkvstvo-b429805
+          - img "Позапланове батьківство" [ref=e136]
+          - generic [ref=e137]: Юліанна Бойлук
+          - generic [ref=e139]: Позапланове батьківство
+        - generic [ref=e140]:
+          - link [ref=e141] [cursor=pointer]:
+            - /url: /book/potraplyanka-na-zamnu-b421276
+          - img "Потраплянка на заміну" [ref=e143]
+          - generic [ref=e144]: Літа Най
+          - generic [ref=e146]: Потраплянка на заміну
+        - generic [ref=e147]:
+          - link [ref=e148] [cursor=pointer]:
+            - /url: /book/parol-vd-tvogo-sercya-b448322
+          - img "Пароль від твого серця" [ref=e150]
+          - generic [ref=e151]: Лаванда Різ
+          - generic [ref=e153]: Пароль від твого серця
+        - generic [ref=e154]:
+          - link [ref=e155] [cursor=pointer]:
+            - /url: /book/yak-zvabiti-magstra-b437423
+          - img "Як звабити магістра" [ref=e157]
+          - generic [ref=e158]: Аліна Амор
+          - generic [ref=e160]: Як звабити магістра
+        - generic [ref=e161]:
+          - link [ref=e162] [cursor=pointer]:
+            - /url: /book/ya-ti-klub-tvoh-kolishnh-b319126
+          - img "Я, ти і клуб твоїх колишніх" [ref=e164]
+          - generic [ref=e165]: Леся Найденко
+          - generic [ref=e167]: Я, ти і клуб твоїх колишніх
+        - generic [ref=e168]:
+          - link [ref=e169] [cursor=pointer]:
+            - /url: /book/odruzhitis-naoslp-b436734
+          - img "Одружитись наосліп" [ref=e171]
+          - generic [ref=e172]: Анна Романова
+          - generic [ref=e174]: Одружитись наосліп
+        - generic [ref=e175]:
+          - link [ref=e176] [cursor=pointer]:
+            - /url: /book/nevdoma-planeta-b427816
+          - img "Невідома планета" [ref=e178]
+          - generic [ref=e179]: Олександр Кваченко
+          - generic [ref=e181]: Невідома планета
+    - generic [ref=e186]:
+      - generic [ref=e189]:
+        - text: Бестселери Букнет
+        - text: Платні книги різних жанрів
+      - generic [ref=e190]:
+        - generic [ref=e191]:
+          - link [ref=e192] [cursor=pointer]:
+            - /url: /book/zrada-davai-pochnemo-spochatku-b422694
+          - img "Зрада. Давай почнемо спочатку" [ref=e194]
+          - generic [ref=e195]: Ірина Лісовська
+          - generic [ref=e197]: Зрада. Давай почнемо спочатку
+        - generic [ref=e198]:
+          - link [ref=e199] [cursor=pointer]:
+            - /url: /book/ne-dealna-narechena-b415852
+          - img "( Не ) ідеальна наречена" [ref=e201]
+          - generic [ref=e202]: Уляна Пас
+          - generic [ref=e204]: ( Не ) ідеальна наречена
+        - generic [ref=e205]:
+          - link [ref=e206] [cursor=pointer]:
+            - /url: /book/moya-nenavisna-kohana-b416629
+          - img "Моя ненависна кохана" [ref=e208]
+          - generic [ref=e209]: Єва Райн
+          - generic [ref=e211]: Моя ненависна кохана
+        - generic [ref=e212]:
+          - link [ref=e213] [cursor=pointer]:
+            - /url: /book/magchnii-dizain-zamovlyali-b415698
+          - img "Магічний дизайн замовляли?" [ref=e215]
+          - generic [ref=e216]: Лара Роса
+          - generic [ref=e218]: Магічний дизайн замовляли?
+        - generic [ref=e219]:
+          - link [ref=e220] [cursor=pointer]:
+            - /url: /book/odna-nch-z-toboyu-b425711
+          - img "Одна ніч з тобою" [ref=e222]
+          - generic [ref=e223]: Юлія Ройс
+          - generic [ref=e225]: Одна ніч з тобою
+        - generic [ref=e226]:
+          - link [ref=e227] [cursor=pointer]:
+            - /url: /book/stanu-tob-tatom-b429253
+          - img "Стану тобі татом" [ref=e229]
+          - generic [ref=e230]: Уляна Пас
+          - generic [ref=e232]: Стану тобі татом
+        - generic [ref=e233]:
+          - link [ref=e234] [cursor=pointer]:
+            - /url: /book/buntarka-na-odnu-nch-b424521
+          - img "Бунтарка на одну ніч" [ref=e236]
+          - generic [ref=e237]: Єва Райн
+          - generic [ref=e239]: Бунтарка на одну ніч
+    - generic [ref=e244]:
+      - generic [ref=e245]:
+        - generic [ref=e247]:
+          - text: Книги з конкурсів
+          - text: "\"Код Всесвіту - Фантастика\", \"Dark Romance\""
+        - link "До конкурсів" [ref=e249] [cursor=pointer]:
+          - /url: /out?url=https://booknet.ua/contests
+          - generic [ref=e250]: До конкурсів
+          - img [ref=e251]
+      - generic [ref=e253]:
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - img [ref=e258]
+            - img "Я був народжений..." [ref=e260]
+          - generic [ref=e261]:
+            - generic [ref=e262]: Я був народжений...
+            - generic [ref=e263]: Куди заведуть людство сучасні технології? Чи зможе зберегти людина власну ідентичність? Роман-подорож в найближче майбутнє. Колись люди неодмінно вирушать до зір. Але чи будуть вони людьми в нашому розумінні?
+            - link "Читати далі" [ref=e265] [cursor=pointer]:
+              - /url: /book/ya-buv-narodzhenii-b450616
+        - generic [ref=e266]:
+          - generic [ref=e267]:
+            - link [ref=e268] [cursor=pointer]:
+              - /url: /book/ya-buv-narodzhenii-b450616
+            - img "Я був народжений..." [ref=e270]
+            - generic [ref=e271]: Олексій Горбунов
+            - generic [ref=e272]: Я був народжений...
+          - generic [ref=e273]:
+            - link [ref=e274] [cursor=pointer]:
+              - /url: /book/stavka-na-kohanku-b448627
+            - img "Ставка на коханку" [ref=e276]
+            - generic [ref=e277]: Кері Блек
+            - generic [ref=e278]: Ставка на коханку
+          - generic [ref=e279]:
+            - link [ref=e280] [cursor=pointer]:
+              - /url: /book/monastir-svyato-brigti-b448620
+            - img "Монастир Святої Бригіти" [ref=e282]
+            - generic [ref=e283]: Ірина Звонок
+            - generic [ref=e284]: Монастир Святої Бригіти
+          - generic [ref=e285]:
+            - link [ref=e286] [cursor=pointer]:
+              - /url: /book/vdnaiti-sebe-b446731
+            - img "Віднайти себе" [ref=e288]
+            - generic [ref=e289]: Андре Буко
+            - generic [ref=e290]: Віднайти себе
+          - generic [ref=e291]:
+            - link [ref=e292] [cursor=pointer]:
+              - /url: /book/schova-storozha-hronki-frontiru-b446583
+            - img "СІчова Сторожа (хроніки фронтиру)" [ref=e294]
+            - generic [ref=e295]: Кулик Степан
+            - generic [ref=e296]: СІчова Сторожа (хроніки фронтиру)
+          - generic [ref=e297]:
+            - link [ref=e298] [cursor=pointer]:
+              - /url: /book/pomchnicya-b449713
+            - img "Помічниця" [ref=e300]
+            - generic [ref=e301]: Холод Влада
+            - generic [ref=e302]: Помічниця
+          - generic [ref=e303]:
+            - link [ref=e304] [cursor=pointer]:
+              - /url: /book/koliskova-dlya-ubivc-b450246
+            - img "Колискова для убивці" [ref=e306]
+            - generic [ref=e307]: Мельська Наталі
+            - generic [ref=e308]: Колискова для убивці
+          - generic [ref=e309]:
+            - link [ref=e310] [cursor=pointer]:
+              - /url: /book/fragma-toi-shcho-zablukav-u-vdobrazhennyah-b445875
+            - img "Фрагма. Той, що заблукав у відображеннях" [ref=e312]
+            - generic [ref=e313]: Олекса Чорна
+            - generic [ref=e314]: Фрагма. Той, що заблукав у відображеннях
+    - generic [ref=e319]:
+      - generic [ref=e322]:
+        - text: Пригоди і фантастика
+        - text: Книжки без акценту на любовну лінію
+      - generic [ref=e323]:
+        - generic [ref=e324]:
+          - link [ref=e325] [cursor=pointer]:
+            - /url: /book/opvnchne-syaivo-shlyah-do-shchastya-b407479
+          - img "Опівнічне сяйво. Шлях до щастя" [ref=e327]
+          - generic [ref=e328]: Катаріна Рейніс
+          - generic [ref=e330]: Опівнічне сяйво. Шлях до щастя
+        - generic [ref=e331]:
+          - link [ref=e332] [cursor=pointer]:
+            - /url: /book/zagublena-dusha-b424174
+          - img "Загублена душа" [ref=e334]
+          - generic [ref=e335]: Віталіна Весела
+          - generic [ref=e337]: Загублена душа
+        - generic [ref=e338]:
+          - link [ref=e339] [cursor=pointer]:
+            - /url: /book/znayucha-b345057
+          - img "Знаюча" [ref=e341]
+          - generic [ref=e342]: Наталі Паррел
+          - generic [ref=e344]: Знаюча
+        - generic [ref=e345]:
+          - link [ref=e346] [cursor=pointer]:
+            - /url: /book/toi-shcho-vizhiv-b390408
+          - img "Той що вижив" [ref=e348]
+          - generic [ref=e349]: Олександр Шаравар
+          - generic [ref=e351]: Той що вижив
+        - generic [ref=e352]:
+          - link [ref=e353] [cursor=pointer]:
+            - /url: /book/lch-na-stazhuvann-chastina-1-b418464
+          - img "Ліч на стажуванні. Частина 1" [ref=e355]
+          - generic [ref=e356]: Анна Алаіс
+          - generic [ref=e358]: Ліч на стажуванні. Частина 1
+        - generic [ref=e359]:
+          - link [ref=e360] [cursor=pointer]:
+            - /url: /book/shlyah-naimancya-b390074
+          - img "Шлях найманця" [ref=e362]
+          - generic [ref=e363]: Дмитро Шилов
+          - generic [ref=e365]: Шлях найманця
+        - generic [ref=e366]:
+          - link [ref=e367] [cursor=pointer]:
+            - /url: /book/yanichari-b428123
+          - img "Яничари" [ref=e369]
+          - generic [ref=e370]: Кулик Степан
+          - generic [ref=e372]: Яничари
+    - generic [ref=e377]:
+      - generic [ref=e380]:
+        - text: Гарячі новинки
+        - text: Нові епізоди книг, які ще пишуть автори
+      - generic [ref=e381]:
+        - generic [ref=e382]:
+          - link [ref=e383] [cursor=pointer]:
+            - /url: /book/spadkomec-mlionera-b451652
+          - img "Спадкоємець мільйонера" [ref=e385]
+          - generic [ref=e386]: Холод Влада
+          - generic [ref=e388]: Спадкоємець мільйонера
+        - generic [ref=e389]:
+          - link [ref=e390] [cursor=pointer]:
+            - /url: /book/shlyub-do-ostannogo-slova-abo-proklyattya-movchazno-kvtki-b451364
+          - img "Шлюб до останнього слова, або Прокляття мовчазної квітки" [ref=e392]
+          - generic [ref=e393]: Кристина Асецька
+          - generic [ref=e395]: Шлюб до останнього слова, або Прокляття мовчазної квітки
+        - generic [ref=e396]:
+          - link [ref=e397] [cursor=pointer]:
+            - /url: /book/ne-kazhi-men-proshchavai-b451244
+          - img "Не кажи мені \"Прощавай\"" [ref=e399]
+          - generic [ref=e400]: Мар'яна Доля
+          - generic [ref=e402]: Не кажи мені "Прощавай"
+        - generic [ref=e403]:
+          - link [ref=e404] [cursor=pointer]:
+            - /url: /book/smein-obstavini-b451879
+          - img "Сімейні обставини" [ref=e406]
+          - generic [ref=e407]: Леся Найденко
+          - generic [ref=e409]: Сімейні обставини
+        - generic [ref=e410]:
+          - link [ref=e411] [cursor=pointer]:
+            - /url: /book/nemozhliv-b452018
+          - img "Неможливі" [ref=e413]
+          - generic [ref=e414]: Ольга Сова
+          - generic [ref=e416]: Неможливі
+        - generic [ref=e417]:
+          - link [ref=e418] [cursor=pointer]:
+            - /url: /book/tamnii-sin-olgarha-b451868
+          - img "Таємний син олігарха" [ref=e420]
+          - generic [ref=e421]: Анна Пахомова
+          - generic [ref=e423]: Таємний син олігарха
+        - generic [ref=e424]:
+          - link [ref=e425] [cursor=pointer]:
+            - /url: /book/ne-tvoya-ditina-b451711
+          - img "( Не) твоя дитина" [ref=e427]
+          - generic [ref=e428]: Еліс Кларк
+          - generic [ref=e430]: ( Не) твоя дитина
+    - generic [ref=e436]:
+      - generic [ref=e437]:
+        - heading "Букнет – літературна платформа для читачів та письменників" [level=3] [ref=e438]
+        - list [ref=e439]:
+          - listitem [ref=e440]: Книги можна читати в процесі створення або завершені
+          - listitem [ref=e441]: Спілкуйтеся з авторами безпосередньо в блогах та коментарях
+        - button "Зареєструватися / Увійти" [ref=e443] [cursor=pointer]
+      - img [ref=e445]
+    - generic [ref=e447]:
+      - generic [ref=e450]:
+        - text: Вам може сподобатися
+        - text: Книжки, на які варто звернути увагу
+      - generic [ref=e451]:
+        - generic [ref=e452]:
+          - link [ref=e453] [cursor=pointer]:
+            - /url: /book/prinadi-zhittya-chorno-vdmi-b394536
+          - img "Принади життя чорної відьми" [ref=e455]
+          - generic [ref=e456]: Кілі Каель
+          - generic [ref=e458]: Принади життя чорної відьми
+        - generic [ref=e459]:
+          - link [ref=e460] [cursor=pointer]:
+            - /url: /book/timchasovii-roman-b426244
+          - img "Тимчасовий Роман" [ref=e462]
+          - generic [ref=e463]: Леся Найденко
+          - generic [ref=e465]: Тимчасовий Роман
+        - generic [ref=e466]:
+          - link [ref=e467] [cursor=pointer]:
+            - /url: /book/kohanii-mlioner-b428596
+          - img "Коханий мільйонер" [ref=e469]
+          - generic [ref=e470]: Юлія Ройс
+          - generic [ref=e472]: Коханий мільйонер
+        - generic [ref=e473]:
+          - link [ref=e474] [cursor=pointer]:
+            - /url: /book/mo-tabu-b428115
+          - img "Моє табу" [ref=e476]
+          - generic [ref=e477]: Холод Влада
+          - generic [ref=e479]: Моє табу
+        - generic [ref=e480]:
+          - link [ref=e481] [cursor=pointer]:
+            - /url: /book/zhaguch-sercya-b410589
+          - img "Жагучі серця" [ref=e483]
+          - generic [ref=e484]: Ксана Рейлі
+          - generic [ref=e486]: Жагучі серця
+        - generic [ref=e487]:
+          - link [ref=e488] [cursor=pointer]:
+            - /url: /book/pd-zahistom-voroga-b446757
+          - img "Під захистом ворога" [ref=e490]
+          - generic [ref=e491]: Ліна Морель
+          - generic [ref=e493]: Під захистом ворога
+        - generic [ref=e494]:
+          - link [ref=e495] [cursor=pointer]:
+            - /url: /book/nebesne-korolvstvo-vryatuvati-princesu-b420750
+          - img "Небесне королівство. Врятувати принцесу" [ref=e497]
+          - generic [ref=e498]: Лада Астра
+          - generic [ref=e500]: Небесне королівство. Врятувати принцесу
+    - generic [ref=e505]:
+      - generic [ref=e508]:
+        - text: Популярні любовні романи
+        - text: без вікового цензу 18+
+      - generic [ref=e509]:
+        - generic [ref=e510]:
+          - link [ref=e511] [cursor=pointer]:
+            - /url: /book/prodana-narechena-b419589
+          - img "Продана наречена" [ref=e513]
+          - generic [ref=e514]: Еліс Кларк
+          - generic [ref=e516]: Продана наречена
+        - generic [ref=e517]:
+          - link [ref=e518] [cursor=pointer]:
+            - /url: /book/pd-zahistom-voroga-b446757
+          - img "Під захистом ворога" [ref=e520]
+          - generic [ref=e521]: Ліна Морель
+          - generic [ref=e523]: Під захистом ворога
+        - generic [ref=e524]:
+          - link [ref=e525] [cursor=pointer]:
+            - /url: /book/koli-zaknchitsya-nenavist-b419206
+          - img "Коли закінчиться ненависть" [ref=e527]
+          - generic [ref=e528]: Лада Короп
+          - generic [ref=e530]: Коли закінчиться ненависть
+        - generic [ref=e531]:
+          - link [ref=e532] [cursor=pointer]:
+            - /url: /book/neshchasliv-vihdn-dlya-bosa-b411451
+          - img "(не)щасливі вихідні для боса" [ref=e534]
+          - generic [ref=e535]: Ксана Рейлі
+          - generic [ref=e537]: (не)щасливі вихідні для боса
+        - generic [ref=e538]:
+          - link [ref=e539] [cursor=pointer]:
+            - /url: /book/do-zustrch-nkoli-b419524
+          - img "До зустрічі ніколи" [ref=e541]
+          - generic [ref=e542]: Меланія Арт
+          - generic [ref=e544]: До зустрічі ніколи
+        - generic [ref=e545]:
+          - link [ref=e546] [cursor=pointer]:
+            - /url: /book/vesnyanka-dlya-profesora-b431384
+          - img "Веснянка для професора" [ref=e548]
+          - generic [ref=e549]: Наталія Косенко
+          - generic [ref=e551]: Веснянка для професора
+        - generic [ref=e552]:
+          - link [ref=e553] [cursor=pointer]:
+            - /url: /book/moya-horosha-dvchinka-b410825
+          - img "Моя хороша дівчинка" [ref=e555]
+          - generic [ref=e556]: Ліля Ваніль
+          - generic [ref=e558]: Моя хороша дівчинка
+    - generic [ref=e563]:
+      - generic [ref=e566]:
+        - text: Популярне зі шкільної програми
+        - text: Насолоджуйтесь класикою
+      - generic [ref=e567]:
+        - generic [ref=e568]:
+          - link [ref=e569] [cursor=pointer]:
+            - /url: /book/povya-b218155
+          - img "Повія" [ref=e571]
+          - generic [ref=e572]: Панас Мирний
+          - generic [ref=e574]: Повія
+        - generic [ref=e575]:
+          - link [ref=e576] [cursor=pointer]:
+            - /url: /book/xba-revut-voli-yak-yasla-povn-b218118
+          - img "Хіба ревуть воли, як ясла повні?" [ref=e578]
+          - generic [ref=e579]: Панас Мирний
+          - generic [ref=e581]: Хіба ревуть воли, як ясла повні?
+        - generic [ref=e582]:
+          - link [ref=e583] [cursor=pointer]:
+            - /url: /book/msto-b216375
+          - img "Місто" [ref=e585]
+          - generic [ref=e586]: Валер'ян Підмогильний
+          - generic [ref=e588]: Місто
+        - generic [ref=e589]:
+          - link [ref=e590] [cursor=pointer]:
+            - /url: /book/kaidasheva-smya-b218045
+          - img "Кайдашева сім'я" [ref=e592]
+          - generic [ref=e593]: Іван Нечуй-Левицький
+          - generic [ref=e595]: Кайдашева сім'я
+        - generic [ref=e596]:
+          - link [ref=e597] [cursor=pointer]:
+            - /url: /book/konotopska-vdma-b219569
+          - img "Конотопська відьма" [ref=e599]
+          - generic [ref=e600]: Григорій Квітка-Основ'яненко
+          - generic [ref=e602]: Конотопська відьма
+        - generic [ref=e603]:
+          - link [ref=e604] [cursor=pointer]:
+            - /url: /book/mazepa-motrya-b219161
+          - img "Мазепа. Мотря" [ref=e606]
+          - generic [ref=e607]: Богдан Лепкий
+          - generic [ref=e609]: Мазепа. Мотря
+        - generic [ref=e610]:
+          - link [ref=e611] [cursor=pointer]:
+            - /url: /book/karmelyuk-b218928
+          - img "Кармелюк" [ref=e613]
+          - generic [ref=e614]: Михайло Старицький
+          - generic [ref=e616]: Кармелюк
+    - generic [ref=e618]:
+      - heading "Читай книги про" [level=2] [ref=e619]
+      - generic [ref=e620]:
+        - generic [ref=e621]:
+          - link "Різниця у віці" [ref=e622] [cursor=pointer]:
+            - /url: /tag/різниця у віці-t594796
+          - link "Дуже відверто" [ref=e623] [cursor=pointer]:
+            - /url: /tag/дуже відверто-t7576396
+          - link "Владний герой" [ref=e624] [cursor=pointer]:
+            - /url: /tag/владний герой-t681929
+          - link "Від ненависті до кохання" [ref=e625] [cursor=pointer]:
+            - /url: /tag/від ненависті до кохання-t691800
+          - link "Гумор" [ref=e626] [cursor=pointer]:
+            - /url: /tag/гумор-t682796
+          - link "Бос та підлегла" [ref=e627] [cursor=pointer]:
+            - /url: /tag/бос та підлегла-t7091593
+          - link "Сильні почуття" [ref=e628] [cursor=pointer]:
+            - /url: /tag/сильні почуття-t10997290
+          - link "Службовий роман" [ref=e629] [cursor=pointer]:
+            - /url: /tag/службовий роман-t816904
+          - link "Кохання" [ref=e630] [cursor=pointer]:
+            - /url: /tag/кохання-t680257
+          - link "Кохання та пригоди" [ref=e631] [cursor=pointer]:
+            - /url: /tag/кохання та пригоди-t663662
+          - link "Показати ще " [ref=e632] [cursor=pointer]:
+            - /url: javascript:void(0);
+            - text: Показати ще
+            - generic [ref=e633]: 
+        - text: 
+    - dialog [active] [ref=e716]:
+      - document [ref=e717]:
+        - generic [ref=e718]:
+          - generic [ref=e719]:
+            - button "Close" [ref=e720] [cursor=pointer]: ×
+            - img [ref=e722]
+          - generic [ref=e723]:
+            - heading "Рекомендації книг, Промокоди і Знижки" [level=1] [ref=e724]
+            - paragraph [ref=e725]: Підпишись на канал Букнет в Телеграмі і слідкуй за повідомленнями
+          - generic [ref=e726]:
+            - link "Підписатися" [ref=e727] [cursor=pointer]:
+              - /url: /out?url=https://t.me/ukrbooknetread2_bot
+            - link "Пізніше" [ref=e728] [cursor=pointer]:
+              - /url: ""
+  - generic [ref=e636]:
+    - generic [ref=e637]:
+      - img [ref=e639]
+      - generic [ref=e641]:
+        - generic [ref=e642]: Використання файлів Cookie
+        - generic [ref=e643]: З метою забезпечення кращого досвіду користувача, ми збираємо та використовуємо файли cookie. Продовжуючи переглядати наш сайт, ви погоджуєтеся на збір і використання файлів cookie.
+    - generic [ref=e644]:
+      - link "Детальніше" [ref=e645] [cursor=pointer]:
+        - /url: /info/privacy-cookies
+      - button "Дозволити" [ref=e646] [cursor=pointer]
+  - contentinfo [ref=e647]:
+    - generic [ref=e648]:
+      - generic [ref=e649]:
+        - generic [ref=e651]:
+          - link "Новини" [ref=e653] [cursor=pointer]:
+            - /url: /news
+          - link "Правовласникам" [ref=e655] [cursor=pointer]:
+            - /url: /info/pravovlasnikam
+          - link "Довідка для читача" [ref=e657] [cursor=pointer]:
+            - /url: /feedback
+          - link "Довідка для автора" [ref=e659] [cursor=pointer]:
+            - /url: /feedback?alias=2
+        - generic [ref=e661]:
+          - link "Оплата" [ref=e663] [cursor=pointer]:
+            - /url: /info/splata
+          - link "Про Букнет" [ref=e665] [cursor=pointer]:
+            - /url: /about
+          - link "Пошук користувачів" [ref=e667] [cursor=pointer]:
+            - /url: /user-search
+        - generic [ref=e669]:
+          - link "Технічна підтримка" [ref=e671] [cursor=pointer]:
+            - /url: /feedback
+            - img [ref=e672]
+            - generic [ref=e674]: Технічна підтримка
+          - link "На мобільну версію" [ref=e676] [cursor=pointer]:
+            - /url: /site/switch-theme?goto=mobile_v2
+            - img [ref=e677]
+            - generic [ref=e679]: На мобільну версію
+        - generic [ref=e681]:
+          - generic [ref=e682]:
+            - generic [ref=e683]:
+              - link [ref=e684] [cursor=pointer]:
+                - /url: /out?url=https://apps.apple.com/app/booknet-electronic-books/id1529082270
+                - img [ref=e685]
+              - link [ref=e687] [cursor=pointer]:
+                - /url: /out?url=https://play.google.com/store/apps/details?id=ua.booknet
+                - img [ref=e688]
+            - generic [ref=e690]:
+              - img [ref=e692]
+              - img [ref=e694]
+          - generic [ref=e695]:
+            - generic [ref=e696]:
+              - link [ref=e697] [cursor=pointer]:
+                - /url: /out?url=https://www.facebook.com/Booknet.ua/
+                - generic [ref=e698]: 
+              - link [ref=e699] [cursor=pointer]:
+                - /url: /out?url=https://www.instagram.com/booknet.ua/
+                - generic [ref=e700]: 
+              - link [ref=e701] [cursor=pointer]:
+                - /url: /out?url=https://t.me/ukrbooknetread2_bot
+            - generic [ref=e703]: Увага! Сайт може містити матеріали, не призначені для перегляду особами, які не досягли 18 років!
+      - generic [ref=e704]:
+        - generic [ref=e705]:
+          - generic [ref=e706]: © 2026 Booknet. Всі права захищено.
+          - generic [ref=e707]: Narva mnt 5, Tallinn 10117, Естонія
+        - generic [ref=e708]:
+          - generic [ref=e709]:
+            - link "Privacy policy |" [ref=e710] [cursor=pointer]:
+              - /url: /info/privacy-policy
+            - link "Угода користувача |" [ref=e711] [cursor=pointer]:
+              - /url: /info/terms
+            - link "Політика конфіденційності" [ref=e712] [cursor=pointer]:
+              - /url: /info/confidental
+          - generic [ref=e713]:
+            - 'link "PR-вiддiл: pr@booknet.com |" [ref=e714] [cursor=pointer]':
+              - /url: mailto:pr@booknet.com
+            - link "Правила публікації авторського контенту" [ref=e715] [cursor=pointer]:
+              - /url: /info/pravila-publikacii
+  - text:  

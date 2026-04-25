@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chytalnya_db
+    environment:
+      POSTGRES_DB: chytalnya
+      POSTGRES_USER: chytalnya
+      POSTGRES_PASSWORD: chytalnya_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chytalnya -d chytalnya"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: chytalnya_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - ENV=dev
+      - DATABASE_URL=postgresql://chytalnya:chytalnya_dev@postgres:5432/chytalnya
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sync:
+    build: ./backend
+    container_name: chytalnya_sync
+    command: ["python", "sync_external_books.py", "--interval", "900", "--limit", "40"]
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - ENV=dev
+      - DATABASE_URL=postgresql://chytalnya:chytalnya_dev@postgres:5432/chytalnya
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: chytalnya_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=
+      - VITE_API_TARGET=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  backend_uploads:
+  postgres_data:

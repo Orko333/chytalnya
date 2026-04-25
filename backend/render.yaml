@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: chytalnya-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: PUBLIC_FRONTEND_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID_PREMIUM
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
