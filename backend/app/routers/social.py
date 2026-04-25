@@ -114,53 +114,19 @@ def delete_comment(comment_id: int, db: Session = Depends(get_db), current: mode
     return {"status": "deleted"}
 
 
-# ===== Follow =====
-@router.post("/users/{user_id}/follow", response_model=schemas.FollowOut)
-def follow(user_id: int, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
-    if user_id == current.id:
-        raise HTTPException(400, "Cannot follow yourself")
-    target = db.query(models.User).filter_by(id=user_id).first()
-    if not target:
-        raise HTTPException(404, "User not found")
-    existing = db.query(models.UserFollow).filter_by(follower_id=current.id, followed_id=user_id).first()
-    if existing:
-        db.delete(existing)
-        db.commit()
-        following = False
-    else:
-        db.add(models.UserFollow(follower_id=current.id, followed_id=user_id))
-        db.commit()
-        notify(db, user_id, "follow", f"{current.username} підписався(лась) на вас",
-               "", f"/profile/{current.username}")
-        following = True
-    followers = db.query(func.count(models.UserFollow.id)).filter_by(followed_id=user_id).scalar() or 0
-    following_count = db.query(func.count(models.UserFollow.id)).filter_by(follower_id=user_id).scalar() or 0
-    from app.services.achievements import evaluate_achievements
-    evaluate_achievements(db, target)
-    return schemas.FollowOut(following=following, followers_count=followers, following_count=following_count)
-
-
 @router.get("/users/{username}/profile")
 def user_profile(username: str, db: Session = Depends(get_db), current: Optional[models.User] = Depends(get_current_user_optional)):
     u = db.query(models.User).filter_by(username=username).first()
     if not u:
         raise HTTPException(404, "User not found")
-    followers = db.query(func.count(models.UserFollow.id)).filter_by(followed_id=u.id).scalar() or 0
-    following_count = db.query(func.count(models.UserFollow.id)).filter_by(follower_id=u.id).scalar() or 0
     reviews_count = db.query(func.count(models.Review.id)).filter_by(user_id=u.id).scalar() or 0
-    is_following = False
-    if current and current.id != u.id:
-        is_following = bool(db.query(models.UserFollow).filter_by(follower_id=current.id, followed_id=u.id).first())
     books_completed = db.query(func.count(models.BookProgress.id)).filter(
         models.BookProgress.user_id == u.id, models.BookProgress.completed == True  # noqa
     ).scalar() or 0
     return {
         "user": user_public(u).model_dump(),
-        "followers_count": int(followers),
-        "following_count": int(following_count),
         "reviews_count": int(reviews_count),
         "books_completed": int(books_completed),
-        "is_following": is_following,
         "is_me": bool(current and current.id == u.id),
     }
 
@@ -172,49 +138,6 @@ def user_reviews(username: str, db: Session = Depends(get_db)):
         raise HTTPException(404, "User not found")
     rs = db.query(models.Review).filter_by(user_id=u.id).order_by(models.Review.created_at.desc()).all()
     return [review_to_out(db, r) for r in rs]
-
-
-@router.get("/users/{username}/followers")
-def list_followers(username: str, db: Session = Depends(get_db)):
-    u = db.query(models.User).filter_by(username=username).first()
-    if not u:
-        raise HTTPException(404)
-    fs = db.query(models.UserFollow).filter_by(followed_id=u.id).all()
-    return [user_public(db.query(models.User).get(f.follower_id)).model_dump() for f in fs]
-
-
-@router.get("/users/{username}/following")
-def list_following(username: str, db: Session = Depends(get_db)):
-    u = db.query(models.User).filter_by(username=username).first()
-    if not u:
-        raise HTTPException(404)
-    fs = db.query(models.UserFollow).filter_by(follower_id=u.id).all()
-    return [user_public(db.query(models.User).get(f.followed_id)).model_dump() for f in fs]
-
-
-# ===== Feed =====
-@router.get("/feed")
-def feed(db: Session = Depends(get_db), current: models.User = Depends(get_current_user), limit: int = 30):
-    followed = [f.followed_id for f in db.query(models.UserFollow).filter_by(follower_id=current.id).all()]
-    ids = followed + [current.id]
-    if not ids:
-        return []
-    reviews = db.query(models.Review).filter(models.Review.user_id.in_(ids)).order_by(models.Review.created_at.desc()).limit(limit).all()
-    items = []
-    for r in reviews:
-        b = db.query(models.Book).get(r.book_id)
-        if not b:
-            continue
-        items.append({
-            "kind": "review",
-            "created_at": r.created_at.isoformat(),
-            "actor": user_public(r.user).model_dump(),
-            "payload": {
-                "review": review_to_out(db, r).model_dump(mode="json"),
-                "book": book_to_out(db, b).model_dump(mode="json"),
-            },
-        })
-    return items
 
 
 # ===== Reports =====

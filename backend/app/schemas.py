@@ -166,17 +166,6 @@ class CommentOut(ORMBase):
 
 
 # ===== Social =====
-class FollowOut(BaseModel):
-    following: bool
-    followers_count: int
-    following_count: int
-
-
-class FeedItem(BaseModel):
-    kind: str  # review|follow|achievement
-    created_at: datetime
-    actor: UserPublic
-    payload: dict
 
 
 # ===== Achievements =====

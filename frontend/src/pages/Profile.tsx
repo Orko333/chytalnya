@@ -1,14 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
 import type { Review } from "@/api/types";
-import { useAuth } from "@/store/auth";
-import { UserPlus, UserCheck, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 export default function Profile() {
   const { username } = useParams();
-  const { user } = useAuth();
-  const qc = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", username],
@@ -19,11 +16,6 @@ export default function Profile() {
     queryKey: ["user-reviews", username],
     queryFn: async () => (await api.get<Review[]>(`/api/users/${username}/reviews`)).data,
     enabled: !!username,
-  });
-
-  const follow = useMutation({
-    mutationFn: async () => (await api.post(`/api/users/${profile.user.id}/follow`)).data,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile", username] }),
   });
 
   if (!profile) return <div className="p-8 text-slate-500">Завантаження…</div>;
@@ -52,11 +44,7 @@ export default function Profile() {
             <span><b>{profile.reviews_count}</b> рецензій</span>
           </div>
         </div>
-        {user && !profile.is_me && (
-          <button className={profile.is_following ? "btn-secondary" : "btn-primary"} onClick={() => follow.mutate()}>
-            {profile.is_following ? <><UserCheck className="w-4 h-4"/>Ви підписані</> : <><UserPlus className="w-4 h-4"/>Підписатись</>}
-          </button>
-        )}
+
       </div>
 
       <div>

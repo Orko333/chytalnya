@@ -40,7 +40,6 @@ export default function App() {
         <Route path="/catalog" element={<Catalog />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/profile/:username" element={<Profile />} />
-        <Route path="/subscriptions" element={<Navigate to="/catalog" replace />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

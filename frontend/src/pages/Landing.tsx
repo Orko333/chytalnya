@@ -46,7 +46,7 @@ const FEATURES = [
   {
     icon: <Users2 className="w-6 h-6" />,
     title: "Ком'юніті",
-    body: "Рецензії, вкладені обговорення, підписки на авторів та читачів.",
+    body: "Рецензії, вкладені обговорення, профілі авторів та читачів.",
     color: "rgba(120,110,200,0.9)",
   },
   {
@@ -267,7 +267,7 @@ export default function Landing() {
           </motion.div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid md:grid-cols-3 gap-5">
           {FEATURES.map((f, i) => (
             <motion.div
               key={f.title}

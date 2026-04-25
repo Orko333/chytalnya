@@ -24,8 +24,6 @@ export type Comment = {
   id: number; user: UserPublic; review_id: number; parent_id: number | null;
   content: string; created_at: string;
 };
-export type Plan = { code: string; name: string; price_monthly: number; features: string[] };
-export type SubStatus = { plan_code: string; status: string; end_date: string | null };
 export type Achievement = {
   id: number; code: string; name: string; description: string; icon: string;
   condition_type: string; condition_value: number; earned: boolean; earned_at: string | null;
