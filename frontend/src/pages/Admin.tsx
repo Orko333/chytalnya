@@ -97,7 +97,14 @@ export default function Admin() {
                   <td className="p-3">{u.id}</td><td>{u.email}</td><td>{u.username}</td>
                   <td><select value={u.role} onChange={(e)=>updateUser.mutate({id:u.id, body:{role:e.target.value}})} className="input py-1 px-2"><option value="user">{roleLabel.user}</option><option value="author">{roleLabel.author}</option><option value="admin">{roleLabel.admin}</option></select></td>
                   <td><input type="checkbox" checked={u.is_active} onChange={(e)=>updateUser.mutate({id:u.id, body:{is_active:e.target.checked}})}/></td>
-                  <td></td>
+                  <td>
+                    <button
+                      className={`text-xs py-1 px-2 rounded border ${u.is_active ? 'border-red-700 text-red-400 hover:bg-red-900/30' : 'border-green-700 text-green-400 hover:bg-green-900/30'}`}
+                      onClick={() => updateUser.mutate({ id: u.id, body: { is_active: !u.is_active } })}
+                    >
+                      {u.is_active ? 'Забанити' : 'Розбанити'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

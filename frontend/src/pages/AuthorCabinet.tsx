@@ -17,7 +17,7 @@ export default function AuthorCabinet() {
   });
 
   const [show, setShow] = useState(false);
-  const [form, setForm] = useState({ title: "", author_name: "", description: "", genres: "", language: "uk", is_premium: false });
+  const [form, setForm] = useState({ title: "", author_name: "", description: "", genres: "", language: "uk" });
   const [textFile, setTextFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
@@ -31,13 +31,12 @@ export default function AuthorCabinet() {
       fd.append("description", form.description);
       fd.append("genres", form.genres);
       fd.append("language", form.language);
-      fd.append("is_premium", String(form.is_premium));
       if (cover) fd.append("cover", cover);
       if (textFile) fd.append("text_file", textFile);
       if (audioFile) fd.append("audio_file", audioFile);
-      return (await api.post("/api/books", fd, { headers: { "Content-Type": "multipart/form-data" } })).data;
+      return (await api.post("/api/books", fd)).data;
     },
-    onSuccess: () => { setShow(false); setForm({ title: "", author_name: "", description: "", genres: "", language: "uk", is_premium: false }); qc.invalidateQueries({ queryKey: ["my-books"] }); },
+    onSuccess: () => { setShow(false); setForm({ title: "", author_name: "", description: "", genres: "", language: "uk" }); qc.invalidateQueries({ queryKey: ["my-books"] }); },
     onError: (e: any) => setErr(e?.response?.data?.detail || "Помилка завантаження"),
   });
 
@@ -68,12 +67,9 @@ export default function AuthorCabinet() {
           <input className="input" placeholder="Автор" value={form.author_name} onChange={(e)=>setForm({...form, author_name: e.target.value})}/>
           <textarea className="input" rows={3} placeholder="Опис" value={form.description} onChange={(e)=>setForm({...form, description: e.target.value})}/>
           <input className="input" placeholder="Жанри (через кому)" value={form.genres} onChange={(e)=>setForm({...form, genres: e.target.value})}/>
-          <div className="grid grid-cols-2 gap-3">
-            <select className="input" value={form.language} onChange={(e)=>setForm({...form, language: e.target.value})}>
-              <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
-            </select>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_premium} onChange={(e)=>setForm({...form, is_premium: e.target.checked})}/>Преміум-книга</label>
-          </div>
+          <select className="input" value={form.language} onChange={(e)=>setForm({...form, language: e.target.value})}>
+            <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
+          </select>
           <div className="grid md:grid-cols-3 gap-3 text-sm">
             <div><label className="block text-slate-600 mb-1">Обкладинка</label><input type="file" accept="image/*" onChange={(e)=>setCover(e.target.files?.[0]||null)}/></div>
             <div><label className="block text-slate-600 mb-1">Текст (.txt/.md)</label><input type="file" accept=".txt,.md" onChange={(e)=>setTextFile(e.target.files?.[0]||null)}/></div>
