@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Headphones, FileText, Eye } from "lucide-react";
+import { Star, Headphones, FileText, Eye, CheckCircle2 } from "lucide-react";
 import type { Book } from "@/api/types";
 import { fileUrl } from "@/api/client";
 
-export default function BookCard({ book }: { book: Book }) {
+export default function BookCard({ book, completed }: { book: Book; completed?: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,6 +64,22 @@ export default function BookCard({ book }: { book: Book }) {
 
           {/* Format badges */}
           <div className="absolute bottom-2 left-2 flex gap-1">
+
+          {/* "Already read" badge — top-right corner */}
+          {completed && (
+            <div
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold z-10"
+              style={{
+                background: "rgba(34, 197, 94, 0.92)",
+                color: "#fff",
+                boxShadow: "0 2px 8px rgba(34,197,94,0.5)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              Прочитано
+            </div>
+          )}
             {book.has_text && (
               <span
                 className="badge text-[10px]"

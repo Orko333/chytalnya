@@ -579,6 +579,18 @@ def set_progress(book_id: int, data: schemas.ProgressIn, db: Session = Depends(g
     )
 
 
+# ===== Completed IDs (bulk) =====
+@router.get("/me/completed-ids")
+def my_completed_ids(db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    """Return list of book_ids the current user has marked as completed."""
+    ids = (
+        db.query(models.BookProgress.book_id)
+        .filter_by(user_id=current.id, completed=True)
+        .all()
+    )
+    return {"ids": [r[0] for r in ids]}
+
+
 # ===== Favorites =====
 @router.post("/{book_id}/favorite")
 def favorite(book_id: int, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):

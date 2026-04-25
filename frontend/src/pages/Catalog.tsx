@@ -1,17 +1,26 @@
 import { useState, useEffect, useRef } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { Book } from "@/api/types";
 import BookCard from "@/components/BookCard";
 import { Search, Loader2 } from "lucide-react";
+import { useAuth } from "@/store/auth";
 
 const PAGE_SIZE = 24;
 
 export default function Catalog() {
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [genre, setGenre] = useState("");
   const [sort, setSort] = useState("new");
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const { data: completedData } = useQuery({
+    queryKey: ["completed-ids"],
+    queryFn: async () => (await api.get<{ ids: number[] }>("/api/books/me/completed-ids")).data,
+    enabled: !!user,
+  });
+  const completedSet = new Set(completedData?.ids ?? []);
 
   const {
     data,
@@ -86,7 +95,7 @@ export default function Catalog() {
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {books.map((b) => <BookCard key={b.id} book={b} />)}
+            {books.map((b) => <BookCard key={b.id} book={b} completed={completedSet.has(b.id)} />)}
           </div>
           {/* Sentinel + loader */}
           <div ref={sentinelRef} className="flex justify-center py-6">

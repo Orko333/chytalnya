@@ -8,12 +8,18 @@ export default function Favorites() {
     queryKey: ["favorites"],
     queryFn: async () => (await api.get<Book[]>("/api/books/me/favorites")).data,
   });
+  const { data: completedData } = useQuery({
+    queryKey: ["completed-ids"],
+    queryFn: async () => (await api.get<{ ids: number[] }>("/api/books/me/completed-ids")).data,
+  });
+  const completedSet = new Set(completedData?.ids ?? []);
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Обране</h1>
       {data.length === 0 ? <div className="text-slate-500">Поки нічого не додано. Натискайте сердечко на сторінці книги ❤️</div> : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-          {data.map((b) => <BookCard key={b.id} book={b} />)}
+          {data.map((b) => <BookCard key={b.id} book={b} completed={completedSet.has(b.id)} />)}
         </div>
       )}
     </div>
