@@ -32,7 +32,7 @@ export default function ResetPassword() {
       {ok ? <div className="text-green-700">Пароль оновлено. Перенаправлення…</div> : (
         <form onSubmit={submit} className="space-y-3">
           <div className="relative">
-            <input type={showPwd ? "text" : "password"} required minLength={6} className="input pr-10" placeholder="Новий пароль" value={password} onChange={(e)=>setPassword(e.target.value)}/>
+            <input type={showPwd ? "text" : "password"} required minLength={6} className="input pr-10" placeholder="Новий пароль" value={password} onChange={(e)=>setPassword(e.target.value)} style={{MozAppearance:"textfield"} as React.CSSProperties} autoComplete="new-password" />
             <button type="button" tabIndex={-1} onClick={() => setShowPwd(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>

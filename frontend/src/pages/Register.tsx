@@ -31,7 +31,7 @@ export default function Register() {
           <input type="text" required minLength={3} className="input" value={username} onChange={(e)=>setUsername(e.target.value)} /></div>
         <div><label className="text-sm text-slate-600">Пароль (мін. 6 символів)</label>
           <div className="relative">
-            <input type={showPwd ? "text" : "password"} required minLength={6} className="input pr-10" value={password} onChange={(e)=>setPassword(e.target.value)} />
+            <input type={showPwd ? "text" : "password"} required minLength={6} className="input pr-10" value={password} onChange={(e)=>setPassword(e.target.value)} style={{MozAppearance:"textfield"} as React.CSSProperties} autoComplete="new-password" />
             <button type="button" tabIndex={-1} onClick={() => setShowPwd(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
