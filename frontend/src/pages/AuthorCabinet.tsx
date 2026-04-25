@@ -3,9 +3,9 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { Book, AuthorSubPlan } from "@/api/types";
 import { Link } from "react-router-dom";
-import { Upload, BarChart3, Trash2, Pencil, Crown, Users, DollarSign, Loader2 } from "lucide-react";
+import { Upload, BarChart3, Trash2, Pencil, Crown, Users, DollarSign, Loader2, Zap } from "lucide-react";
 
-type EditForm = { title: string; author_name: string; description: string; genres: string; language: string };
+type EditForm = { title: string; author_name: string; description: string; genres: string; language: string; is_premium: boolean };
 
 export default function AuthorCabinet() {
   const qc = useQueryClient();
@@ -19,7 +19,7 @@ export default function AuthorCabinet() {
   });
 
   const [show, setShow] = useState(false);
-  const [form, setForm] = useState({ title: "", author_name: "", description: "", genres: "", language: "uk" });
+  const [form, setForm] = useState({ title: "", author_name: "", description: "", genres: "", language: "uk", is_premium: false });
   const [textFile, setTextFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
@@ -27,12 +27,12 @@ export default function AuthorCabinet() {
 
   // Edit state
   const [editId, setEditId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<EditForm>({ title: "", author_name: "", description: "", genres: "", language: "uk" });
+  const [editForm, setEditForm] = useState<EditForm>({ title: "", author_name: "", description: "", genres: "", language: "uk", is_premium: false });
   const [editErr, setEditErr] = useState("");
 
   const openEdit = (b: Book) => {
     setEditId(b.id);
-    setEditForm({ title: b.title, author_name: b.author_name, description: b.description, genres: b.genres.join(", "), language: b.language });
+    setEditForm({ title: b.title, author_name: b.author_name, description: b.description, genres: b.genres.join(", "), language: b.language, is_premium: b.is_premium });
     setEditErr("");
   };
   const closeEdit = () => { setEditId(null); setEditErr(""); };
@@ -45,12 +45,13 @@ export default function AuthorCabinet() {
       fd.append("description", form.description);
       fd.append("genres", form.genres);
       fd.append("language", form.language);
+      fd.append("is_premium", String(form.is_premium));
       if (cover) fd.append("cover", cover);
       if (textFile) fd.append("text_file", textFile);
       if (audioFile) fd.append("audio_file", audioFile);
       return (await api.post("/api/books", fd)).data;
     },
-    onSuccess: () => { setShow(false); setForm({ title: "", author_name: "", description: "", genres: "", language: "uk" }); qc.invalidateQueries({ queryKey: ["my-books"] }); },
+    onSuccess: () => { setShow(false); setForm({ title: "", author_name: "", description: "", genres: "", language: "uk", is_premium: false }); qc.invalidateQueries({ queryKey: ["my-books"] }); },
     onError: (e: any) => setErr(e?.response?.data?.detail || "Помилка завантаження"),
   });
 
@@ -98,6 +99,7 @@ export default function AuthorCabinet() {
         description: editForm.description,
         genres: genres_list,
         language: editForm.language,
+        is_premium: editForm.is_premium,
       })).data;
     },
     onSuccess: () => { closeEdit(); qc.invalidateQueries({ queryKey: ["my-books"] }); },
@@ -112,10 +114,16 @@ export default function AuthorCabinet() {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <div className="card p-4 text-center"><div className="text-3xl font-bold">{summary.books_count}</div><div className="text-sm text-slate-500">Книг</div></div>
           <div className="card p-4 text-center"><div className="text-3xl font-bold">{summary.total_views}</div><div className="text-sm text-slate-500">Переглядів</div></div>
           <div className="card p-4 text-center"><div className="text-3xl font-bold">{summary.total_reviews}</div><div className="text-sm text-slate-500">Рецензій</div></div>
+          <div className="card p-4 text-center flex flex-col items-center gap-1">
+            <div className="flex items-center gap-1 text-3xl font-bold text-amber-400">
+              <Zap className="w-6 h-6 fill-amber-400"/>{summary.creator_bonus_pts ?? 0}
+            </div>
+            <div className="text-sm text-slate-500">Бонусних балів</div>
+          </div>
         </div>
       )}
 
@@ -237,6 +245,11 @@ export default function AuthorCabinet() {
           <select className="input" value={form.language} onChange={(e)=>setForm({...form, language: e.target.value})}>
             <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
           </select>
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input type="checkbox" checked={form.is_premium} onChange={(e)=>setForm({...form, is_premium: e.target.checked})} className="w-4 h-4"/>
+            <Crown className="w-4 h-4 text-amber-400"/>
+            <span>Преміум книга <span className="text-slate-500">(тільки для підписників)</span></span>
+          </label>
           <div className="grid md:grid-cols-3 gap-3 text-sm">
             <div><label className="block text-slate-600 mb-1">Обкладинка</label><input type="file" accept="image/*" onChange={(e)=>setCover(e.target.files?.[0]||null)}/></div>
             <div><label className="block text-slate-600 mb-1">Текст (.txt/.md)</label><input type="file" accept=".txt,.md" onChange={(e)=>setTextFile(e.target.files?.[0]||null)}/></div>
@@ -256,7 +269,10 @@ export default function AuthorCabinet() {
             <div className="flex items-center gap-3">
               <div className="w-14 h-20 rounded bg-gradient-to-br from-brand-200 to-brand-400 flex items-center justify-center text-white font-serif text-xl shrink-0">{b.title.slice(0,2)}</div>
               <div className="flex-1 min-w-0">
-                <Link to={`/books/${b.id}`} className="font-semibold hover:underline line-clamp-1">{b.title}</Link>
+                <div className="flex items-center gap-1.5">
+                  <Link to={`/books/${b.id}`} className="font-semibold hover:underline line-clamp-1">{b.title}</Link>
+                  {b.is_premium && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-label="Преміум"/>}
+                </div>
                 <div className="text-xs text-slate-500">{b.views} переглядів • {b.reviews_count} рецензій • ⭐{b.avg_rating.toFixed(1)}</div>
               </div>
               <Link to={`/author/analytics/${b.id}`} className="btn-ghost p-2" title="Аналітика"><BarChart3 className="w-4 h-4"/></Link>
@@ -274,6 +290,11 @@ export default function AuthorCabinet() {
                 <select className="input text-sm" value={editForm.language} onChange={(e)=>setEditForm({...editForm, language: e.target.value})}>
                   <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
                 </select>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input type="checkbox" checked={editForm.is_premium} onChange={(e)=>setEditForm({...editForm, is_premium: e.target.checked})} className="w-4 h-4"/>
+                  <Crown className="w-4 h-4 text-amber-400"/>
+                  <span>Преміум книга</span>
+                </label>
                 {editErr && <div className="text-red-500 text-xs">{editErr}</div>}
                 <div className="flex gap-2">
                   <button className="btn-primary text-sm py-1" disabled={edit.isPending || !editForm.title} onClick={() => { setEditErr(""); edit.mutate(); }}>Зберегти</button>

@@ -276,6 +276,11 @@ async def stream_text(book_id: int, db: Session = Depends(get_db), current: Opti
         raise HTTPException(403, "Ця книга доступна лише за передплатою")
 
     db.add(models.BookEvent(book_id=b.id, user_id=current.id if current else None, event="read"))
+    # Award 1 bonus point to author per unique premium read
+    if b.is_premium and current and current.id != b.owner_id:
+        db.query(models.User).filter(models.User.id == b.owner_id).update(
+            {models.User.creator_bonus_pts: models.User.creator_bonus_pts + 1}
+        )
     db.commit()
 
     # 0. Text stored in DB (survives ephemeral disk loss on Render free tier)
@@ -425,6 +430,11 @@ async def stream_audio(book_id: int, request: Request, db: Session = Depends(get
         raise HTTPException(403, "Ця книга доступна лише за передплатою")
 
     db.add(models.BookEvent(book_id=b.id, user_id=current.id if current else None, event="listen"))
+    # Award 1 bonus point to author per premium listen
+    if b.is_premium and current and current.id != b.owner_id:
+        db.query(models.User).filter(models.User.id == b.owner_id).update(
+            {models.User.creator_bonus_pts: models.User.creator_bonus_pts + 1}
+        )
     db.commit()
 
     # 1. External audio URL (LibriVox etc.) — proxy stream to avoid browser CORS issues

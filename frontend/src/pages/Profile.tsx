@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, fileUrl } from "@/api/client";
 import type { Review, AuthorSubPlan, AuthorSubStatus } from "@/api/types";
 import { useAuth } from "@/store/auth";
-import { Star, Crown, CheckCircle2, Calendar, Loader2 } from "lucide-react";
+import { Star, Crown, CheckCircle2, Calendar, Loader2, UserPlus, UserCheck, Users } from "lucide-react";
 import PaymentModal from "@/components/PaymentModal";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
@@ -47,6 +47,11 @@ export default function Profile() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["author-sub", authorId] }),
   });
 
+  const followToggle = useMutation({
+    mutationFn: () => api.post<{ following: boolean }>(`/api/users/${authorId}/follow`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile", username] }),
+  });
+
   if (!profile) return <div className="p-8 text-slate-500">Завантаження…</div>;
 
   const u = profile.user;
@@ -77,7 +82,27 @@ export default function Profile() {
           {u.bio && <p className="text-slate-600 mt-1">{u.bio}</p>}
           <div className="flex gap-4 mt-2 text-sm text-slate-600">
             <span><b>{profile.reviews_count}</b> рецензій</span>
+            <span><b>{profile.followers_count ?? 0}</b> підписників</span>
+            <span><b>{profile.following_count ?? 0}</b> підписок</span>
           </div>
+          {!isSelf && !!me && (
+            <button
+              className={`mt-3 btn-ghost text-sm flex items-center gap-2 ${profile.is_following ? "text-green-400 border-green-500/40" : ""}`}
+              onClick={() => followToggle.mutate()}
+              disabled={followToggle.isPending}
+            >
+              {followToggle.isPending
+                ? <Loader2 className="w-4 h-4 animate-spin"/>
+                : profile.is_following
+                  ? <><UserCheck className="w-4 h-4"/>Ви підписані</>
+                  : <><UserPlus className="w-4 h-4"/>Підписатись</>}
+            </button>
+          )}
+          {!me && !isSelf && (
+            <Link to="/login" className="mt-3 btn-ghost text-sm flex items-center gap-2 w-fit">
+              <Users className="w-4 h-4"/>Увійдіть, щоб підписатись
+            </Link>
+          )}
         </div>
       </div>
 

@@ -24,6 +24,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     email_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=utcnow)
+    creator_bonus_pts = Column(Float, default=0.0)
 
     books = relationship("Book", back_populates="owner", cascade="all,delete")
     reviews = relationship("Review", back_populates="user", cascade="all,delete")

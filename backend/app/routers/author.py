@@ -54,8 +54,11 @@ def summary(db: Session = Depends(get_db), user: models.User = Depends(get_curre
     total_reviews = db.query(func.count(models.Review.id)).filter(
         models.Review.book_id.in_([b.id for b in books] or [0])
     ).scalar() or 0
+    db.refresh(user)
+    bonus_pts = int(user.creator_bonus_pts or 0)
     return {
         "books_count": len(books),
         "total_views": total_views,
         "total_reviews": int(total_reviews),
+        "creator_bonus_pts": bonus_pts,
     }

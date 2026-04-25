@@ -23,6 +23,7 @@ def run_migrations() -> None:
     _ADD_COLUMNS = [
         ("books", "text_url", "VARCHAR(1000) DEFAULT ''"),
         ("books", "text_content", "TEXT DEFAULT ''"),
+        ("users", "creator_bonus_pts", "FLOAT DEFAULT 0"),
     ]
     with engine.connect() as conn:
         for table, col, col_def in _ADD_COLUMNS:

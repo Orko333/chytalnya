@@ -123,12 +123,64 @@ def user_profile(username: str, db: Session = Depends(get_db), current: Optional
     books_completed = db.query(func.count(models.BookProgress.id)).filter(
         models.BookProgress.user_id == u.id, models.BookProgress.completed == True  # noqa
     ).scalar() or 0
+    followers_count = db.query(func.count(models.UserFollow.id)).filter_by(followed_id=u.id).scalar() or 0
+    following_count = db.query(func.count(models.UserFollow.id)).filter_by(follower_id=u.id).scalar() or 0
+    is_following = False
+    if current and current.id != u.id:
+        is_following = bool(db.query(models.UserFollow).filter_by(follower_id=current.id, followed_id=u.id).first())
     return {
         "user": user_public(u).model_dump(),
         "reviews_count": int(reviews_count),
         "books_completed": int(books_completed),
+        "followers_count": int(followers_count),
+        "following_count": int(following_count),
+        "is_following": is_following,
         "is_me": bool(current and current.id == u.id),
     }
+
+
+# ===== Follow =====
+
+@router.post("/users/{user_id}/follow")
+def toggle_follow(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current: models.User = Depends(get_current_user),
+):
+    if user_id == current.id:
+        raise HTTPException(400, "Не можна підписатись на себе")
+    target = db.query(models.User).filter_by(id=user_id).first()
+    if not target:
+        raise HTTPException(404, "User not found")
+    existing = db.query(models.UserFollow).filter_by(follower_id=current.id, followed_id=user_id).first()
+    if existing:
+        db.delete(existing)
+        db.commit()
+        return {"following": False}
+    db.add(models.UserFollow(follower_id=current.id, followed_id=user_id))
+    db.commit()
+    notify(db, user_id, "follow", "Новий підписник", f"@{current.username} підписався на вас", f"/profile/{current.username}")
+    return {"following": True}
+
+
+@router.get("/users/{username}/followers")
+def user_followers(username: str, db: Session = Depends(get_db)):
+    u = db.query(models.User).filter_by(username=username).first()
+    if not u:
+        raise HTTPException(404, "User not found")
+    rows = db.query(models.UserFollow).filter_by(followed_id=u.id).all()
+    users = [db.query(models.User).filter_by(id=r.follower_id).first() for r in rows]
+    return [user_public(usr).model_dump() for usr in users if usr]
+
+
+@router.get("/users/{username}/following")
+def user_following(username: str, db: Session = Depends(get_db)):
+    u = db.query(models.User).filter_by(username=username).first()
+    if not u:
+        raise HTTPException(404, "User not found")
+    rows = db.query(models.UserFollow).filter_by(follower_id=u.id).all()
+    users = [db.query(models.User).filter_by(id=r.followed_id).first() for r in rows]
+    return [user_public(usr).model_dump() for usr in users if usr]
 
 
 @router.get("/users/{username}/reviews", response_model=List[schemas.ReviewOut])
