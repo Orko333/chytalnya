@@ -50,9 +50,6 @@ export default function Profile() {
           {u.bio && <p className="text-slate-600 mt-1">{u.bio}</p>}
           <div className="flex gap-4 mt-2 text-sm text-slate-600">
             <span><b>{profile.reviews_count}</b> рецензій</span>
-            <span><b>{profile.books_completed}</b> завершено</span>
-            <span><b>{profile.followers_count}</b> підписників</span>
-            <span><b>{profile.following_count}</b> стежить</span>
           </div>
         </div>
         {user && !profile.is_me && (

@@ -134,12 +134,19 @@ def list_books(
         query = query.filter(
             _text("EXISTS (SELECT 1 FROM json_array_elements_text(books.genres) AS g WHERE g = :genre_val)")
         ).params(genre_val=genre)
-    books = query.order_by(models.Book.created_at.desc()).offset(offset).limit(limit).all()
-    outs = [book_to_out(db, b) for b in books]
     if sort == "popular":
-        outs.sort(key=lambda x: x.views, reverse=True)
+        query = query.order_by(models.Book.views.desc())
     elif sort == "rating":
-        outs.sort(key=lambda x: (x.avg_rating, x.reviews_count), reverse=True)
+        avg_sub = (
+            db.query(models.Review.book_id, func.coalesce(func.avg(models.Review.rating), 0).label("avg_r"))
+            .group_by(models.Review.book_id)
+            .subquery()
+        )
+        query = query.outerjoin(avg_sub, models.Book.id == avg_sub.c.book_id).order_by(avg_sub.c.avg_r.desc())
+    else:
+        query = query.order_by(models.Book.created_at.desc())
+    books = query.offset(offset).limit(limit).all()
+    outs = [book_to_out(db, b) for b in books]
     return outs
 
 
