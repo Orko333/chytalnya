@@ -24,7 +24,6 @@ export default function Admin() {
   const delContent = useMutation({
     mutationFn: async ({ type, id }: any) => (await api.delete(`/api/admin/content/${type}/${id}`)).data,
     onSuccess: (_data, vars: any) => {
-      // After deleting content, resolve the associated report
       if (vars.reportId) {
         resolveReport.mutate({ id: vars.reportId, status: "resolved" });
       } else {
@@ -32,11 +31,14 @@ export default function Admin() {
       }
     },
     onError: (_err, vars: any) => {
-      // Content might already be gone — still resolve the report
       if (vars.reportId) {
         resolveReport.mutate({ id: vars.reportId, status: "resolved" });
       }
     },
+  });
+  const unbanBook = useMutation({
+    mutationFn: async (id: number) => (await api.post(`/api/admin/content/book/${id}/unban`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-books"] }),
   });
 
   const statLabels: Record<string, string> = {
@@ -155,12 +157,18 @@ export default function Admin() {
       {tab==="books" && (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="text-left border-b"><th className="p-3">ID</th><th>Назва</th><th>Автор</th><th>Статус</th><th>Перегляди</th><th></th></tr></thead>
+            <thead><tr className="text-left border-b"><th className="p-3">ID</th><th>Назва</th><th>Автор</th><th className="p-3">Статус</th><th className="p-3 text-center">Перегляди</th><th></th></tr></thead>
             <tbody>
               {allBooks.map((b: any) => (
                 <tr key={b.id} className="border-b last:border-0">
-                  <td className="p-3">{b.id}</td><td>{b.title}</td><td>{b.author_name}</td><td>{bookStatusLabel[b.status] || b.status}</td><td>{b.views}</td>
-                  <td><button className="btn-danger text-xs py-1" onClick={()=>delContent.mutate({type:"book", id:b.id})}>Забанити</button></td>
+                  <td className="p-3">{b.id}</td><td className="p-3">{b.title}</td><td className="p-3">{b.author_name}</td><td className="p-3">{bookStatusLabel[b.status] || b.status}</td><td className="p-3 text-center">{b.views}</td>
+                  <td className="p-3">
+                    {b.status === "banned" ? (
+                      <button className="text-xs py-1 px-2 rounded border border-green-700 text-green-400 hover:bg-green-900/30" onClick={()=>unbanBook.mutate(b.id)}>Розблокувати</button>
+                    ) : (
+                      <button className="btn-danger text-xs py-1" onClick={()=>delContent.mutate({type:"book", id:b.id})}>Забанити</button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

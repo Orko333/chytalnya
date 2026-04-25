@@ -90,6 +90,16 @@ def delete_content(content_type: str, content_id: int, db: Session = Depends(get
     raise HTTPException(404)
 
 
+@router.post("/content/book/{book_id}/unban")
+def unban_book(book_id: int, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
+    obj = db.query(models.Book).filter_by(id=book_id).first()
+    if not obj:
+        raise HTTPException(404)
+    obj.status = "published"
+    db.commit()
+    return {"status": "published"}
+
+
 @router.get("/stats")
 def platform_stats(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     return {
