@@ -252,11 +252,11 @@ class UserAuthorSubOut(BaseModel):
 
 class BookAccessOut(BaseModel):
     can_access: bool
-    reason: str          # free | owner | admin | platform_premium | author_sub
+    reason: str          # free | owner | admin | author_sub
     is_premium: bool
-    requires: Optional[str] = None   # None | platform_premium | author_sub | login
+    requires: Optional[str] = None   # None | login | author_sub | no_plan
     author_sub_price: Optional[float] = None
-    platform_sub_price: float = 4.99
+    owner_username: Optional[str] = None
 
 
 # ===== Admin =====

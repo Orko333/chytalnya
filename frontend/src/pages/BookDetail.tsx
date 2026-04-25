@@ -89,7 +89,7 @@ export default function BookDetail() {
 
               {access.requires !== "login" && (
                 <div className="space-y-2">
-                  {/* Option 1: Subscribe to this author */}
+                  {/* Subscribe to this author */}
                   {access.author_sub_price != null && (
                     <button
                       className="btn-primary w-full text-sm flex items-center justify-center gap-2"
@@ -100,15 +100,12 @@ export default function BookDetail() {
                     </button>
                   )}
 
-                  {/* Option 2: Platform premium — always shown */}
-                  <Link
-                    to="/subscriptions"
-                    className={`w-full text-sm flex items-center justify-center gap-2 ${access.author_sub_price != null ? "btn-ghost" : "btn-primary"}`}
-                  >
-                    <Crown className="w-4 h-4"/>
-                    Читальня Преміум — ${access.platform_sub_price}/міс
-                    {access.author_sub_price != null && <span className="text-slate-400 text-xs ml-1">(всі книги)</span>}
-                  </Link>
+                  {/* Author has no plan */}
+                  {access.requires === "no_plan" && (
+                    <p className="text-xs text-slate-400 text-center py-2">
+                      Автор ще не налаштував платну підписку
+                    </p>
+                  )}
 
                   {/* Author profile link */}
                   {book.owner_username && (

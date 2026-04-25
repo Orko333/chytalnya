@@ -638,17 +638,6 @@ def book_access(
 
     now = datetime.now(timezone.utc)
 
-    # Platform premium
-    sub = db.query(models.UserSubscription).filter_by(
-        user_id=current.id, plan_code="premium", status="active"
-    ).first()
-    if sub:
-        ed = sub.end_date
-        if ed and ed.tzinfo is None:
-            ed = ed.replace(tzinfo=timezone.utc)
-        if ed is None or ed > now:
-            return schemas.BookAccessOut(can_access=True, reason="platform_premium", is_premium=True)
-
     # Author subscription
     a_sub = db.query(models.UserAuthorSub).filter_by(
         user_id=current.id, author_id=b.owner_id, status="active"
@@ -664,13 +653,14 @@ def book_access(
     author_plan = db.query(models.AuthorSubPlan).filter_by(
         author_id=b.owner_id, is_active=True
     ).first()
+    owner = db.query(models.User).filter_by(id=b.owner_id).first()
     return schemas.BookAccessOut(
         can_access=False,
         reason="",
         is_premium=True,
-        requires="author_sub" if author_plan else "platform_premium",
+        requires="author_sub" if author_plan else "no_plan",
         author_sub_price=author_plan.price_monthly if author_plan else None,
-        platform_sub_price=4.99,
+        owner_username=owner.username if owner else None,
     )
 
 

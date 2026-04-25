@@ -56,6 +56,6 @@ export type AuthorSubStatus = {
 };
 export type BookAccess = {
   can_access: boolean; reason: string; is_premium: boolean;
-  requires: "login" | "platform_premium" | "author_sub" | null;
-  author_sub_price: number | null; platform_sub_price: number;
+  requires: "login" | "author_sub" | "no_plan" | null;
+  author_sub_price: number | null; owner_username?: string | null;
 };

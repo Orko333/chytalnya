@@ -117,17 +117,7 @@ def has_book_access(book: models.Book, user: Optional[models.User], db: Session)
     if book.owner_id == user.id:
         return True
     now = datetime.now(timezone.utc)
-    # Platform premium
-    sub = db.query(models.UserSubscription).filter_by(
-        user_id=user.id, plan_code="premium", status="active"
-    ).first()
-    if sub:
-        ed = sub.end_date
-        if ed and ed.tzinfo is None:
-            ed = ed.replace(tzinfo=timezone.utc)
-        if ed is None or ed > now:
-            return True
-    # Author subscription
+    # Author subscription only
     a_sub = db.query(models.UserAuthorSub).filter_by(
         user_id=user.id, author_id=book.owner_id, status="active"
     ).first()
@@ -444,6 +434,29 @@ def get_author_plan(author_id: int, db: Session = Depends(get_db)):
         author_id=plan.author_id, price_monthly=plan.price_monthly,
         description=plan.description, is_active=plan.is_active,
     )
+
+
+@router.get("/my-author-subs")
+def my_author_subs(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user),
+):
+    """List all author subscriptions (any status) for the current user."""
+    subs = db.query(models.UserAuthorSub).filter_by(user_id=user.id).all()
+    result = []
+    for s in subs:
+        author = db.query(models.User).filter_by(id=s.author_id).first()
+        plan = db.query(models.AuthorSubPlan).filter_by(author_id=s.author_id).first()
+        result.append({
+            "author_id": s.author_id,
+            "author_username": author.username if author else "",
+            "author_avatar_url": author.avatar_url or "" if author else "",
+            "status": s.status,
+            "end_date": s.end_date.isoformat() if s.end_date else None,
+            "price_monthly": plan.price_monthly if plan else 0.0,
+            "plan_description": plan.description if plan else "",
+        })
+    return result
 
 
 # ── Payment history ───────────────────────────────────────────────────────────
