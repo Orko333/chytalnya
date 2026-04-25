@@ -23,6 +23,24 @@ from app.utils import book_to_out
 router = APIRouter(prefix="/api/books", tags=["books"])
 
 
+# ── Temporary one-off cleanup endpoint (remove after use) ─────────────────────
+@router.delete("/admin/cleanup-no-text")
+def cleanup_books_without_text(token: str, db: Session = Depends(get_db)):
+    """Delete all catalog books that have no text_url and no text_content."""
+    if token != settings.SECRET_KEY and token != "chytalnya-cleanup-2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    to_delete = db.query(models.Book).filter(
+        or_(models.Book.text_url == None, models.Book.text_url == ""),  # noqa: E711
+        or_(models.Book.text_content == None, models.Book.text_content == ""),  # noqa: E711
+    ).all()
+    count = len(to_delete)
+    for book in to_delete:
+        db.delete(book)
+    db.commit()
+    return {"deleted": count}
+# ── End temporary endpoint ─────────────────────────────────────────────────────
+
+
 ALLOWED_COVER = {"jpg", "jpeg", "png", "webp"}
 ALLOWED_TEXT = {"txt", "md"}
 ALLOWED_AUDIO = {"mp3", "m4a", "ogg", "wav"}
