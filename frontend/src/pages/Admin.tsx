@@ -6,9 +6,11 @@ export default function Admin() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"stats"|"users"|"reports"|"books">("stats");
 
+  const [reportFilter, setReportFilter] = useState<"open"|"resolved"|"dismissed"|"all">("open");
+
   const { data: stats } = useQuery({ queryKey: ["admin-stats"], queryFn: async () => (await api.get("/api/admin/stats")).data });
   const { data: users = [] } = useQuery({ queryKey: ["admin-users"], queryFn: async () => (await api.get("/api/admin/users")).data, enabled: tab==="users" });
-  const { data: reports = [] } = useQuery({ queryKey: ["admin-reports"], queryFn: async () => (await api.get("/api/admin/reports")).data, enabled: tab==="reports" });
+  const { data: reports = [] } = useQuery({ queryKey: ["admin-reports", reportFilter], queryFn: async () => (await api.get(`/api/admin/reports${reportFilter !== "all" ? `?status=${reportFilter}` : ""}`)).data, enabled: tab==="reports" });
   const { data: allBooks = [] } = useQuery({ queryKey: ["admin-books"], queryFn: async () => (await api.get("/api/admin/books")).data, enabled: tab==="books" });
 
   const updateUser = useMutation({
@@ -21,7 +23,20 @@ export default function Admin() {
   });
   const delContent = useMutation({
     mutationFn: async ({ type, id }: any) => (await api.delete(`/api/admin/content/${type}/${id}`)).data,
-    onSuccess: () => qc.invalidateQueries(),
+    onSuccess: (_data, vars: any) => {
+      // After deleting content, resolve the associated report
+      if (vars.reportId) {
+        resolveReport.mutate({ id: vars.reportId, status: "resolved" });
+      } else {
+        qc.invalidateQueries();
+      }
+    },
+    onError: (_err, vars: any) => {
+      // Content might already be gone — still resolve the report
+      if (vars.reportId) {
+        resolveReport.mutate({ id: vars.reportId, status: "resolved" });
+      }
+    },
   });
 
   const statLabels: Record<string, string> = {
@@ -91,18 +106,40 @@ export default function Admin() {
       )}
 
       {tab==="reports" && (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <div className="flex gap-2 text-sm">
+            {(["open","resolved","dismissed","all"] as const).map(s => (
+              <button key={s} onClick={()=>setReportFilter(s)} className={`px-3 py-1 rounded-full border ${reportFilter===s?"border-amber-500 text-amber-400 bg-amber-500/10":"border-surface-300 text-parchment-400"}`}>
+                {{open:"Відкриті",resolved:"Вирішені",dismissed:"Відхилені",all:"Всі"}[s]}
+              </button>
+            ))}
+          </div>
           {reports.length===0 && <div className="text-slate-500 text-center p-8">Немає скарг</div>}
           {reports.map((r: any) => (
-            <div key={r.id} className="card p-4 flex justify-between items-center">
+            <div key={r.id} className="card p-4 flex justify-between items-start gap-4">
               <div>
-                <div className="text-sm"><b>{r.content_type}</b> #{r.content_id} — <i>{r.reason || "без причини"}</i></div>
-                <div className="text-xs text-slate-500">Від #{r.reporter_id} • {reportStatusLabel[r.status] || r.status}</div>
+                <div className="text-sm font-medium"><b>{r.content_type}</b> #{r.content_id}</div>
+                <div className="text-sm text-parchment-300 mt-0.5 italic">{r.reason || "без причини"}</div>
+                <div className="text-xs text-slate-500 mt-1">Від #{r.reporter_id} • {reportStatusLabel[r.status] || r.status}</div>
               </div>
-              <div className="flex gap-2">
-                <button className="btn-danger text-xs py-1" onClick={() => { delContent.mutate({type:r.content_type, id:r.content_id}); resolveReport.mutate({id:r.id, status:"resolved"}); }}>Видалити</button>
-                <button className="btn-secondary text-xs py-1" onClick={()=>resolveReport.mutate({id:r.id, status:"dismissed"})}>Відхилити</button>
-              </div>
+              {r.status === "open" && (
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    disabled={delContent.isPending || resolveReport.isPending}
+                    className="btn-danger text-xs py-1 disabled:opacity-50"
+                    onClick={() => delContent.mutate({ type: r.content_type, id: r.content_id, reportId: r.id })}
+                  >
+                    Видалити
+                  </button>
+                  <button
+                    disabled={resolveReport.isPending}
+                    className="btn-secondary text-xs py-1 disabled:opacity-50"
+                    onClick={() => resolveReport.mutate({ id: r.id, status: "dismissed" })}
+                  >
+                    Відхилити
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

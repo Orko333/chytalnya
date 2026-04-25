@@ -24,7 +24,7 @@ from app.core.database import SessionLocal
 log = logging.getLogger("text_scraper")
 
 _UPLOAD_BASE = Path(settings.UPLOAD_DIR).resolve() / "books"
-_SEM = asyncio.Semaphore(4)  # max concurrent HTTP downloads
+_SEM = asyncio.Semaphore(2)  # max concurrent HTTP downloads (keep RAM low on 512MB Render)
 
 
 # ── Minimal HTML stripper (same logic as books.py, duplicated to avoid circular import) ──
@@ -338,7 +338,7 @@ async def _cache_from_ia_search(
 
 # ── Public API ──
 
-async def run_scraper_batch(batch_size: int = 150) -> dict:
+async def run_scraper_batch(batch_size: int = 40) -> dict:
     """
     Process one batch of uncached books.
     Returns {"cached": N, "found_new": M, "failed": K, "blocked": B}.
@@ -425,7 +425,7 @@ async def run_scraper_forever(initial_delay: float = 5.0) -> None:
             remaining = await asyncio.to_thread(_count_uncached)
             if remaining == 0:
                 break
-            stats = await run_scraper_batch(batch_size=150)
+            stats = await run_scraper_batch(batch_size=40)
             total_cached += stats["cached"]
             total_new += stats["found_new"]
             total_blocked += stats["blocked"]
@@ -434,8 +434,8 @@ async def run_scraper_forever(initial_delay: float = 5.0) -> None:
             if stats["cached"] + stats["found_new"] + stats["blocked"] == 0:
                 break
 
-            # Brief pause between batches to avoid hammering external servers
-            await asyncio.sleep(2.0)
+            # Pause between batches to keep memory pressure low on 512MB Render instance
+            await asyncio.sleep(10.0)
 
         log.info(
             "Text scraper sweep done — total_cached=%d  total_new=%d  total_blocked=%d  sleeping 7 days",
