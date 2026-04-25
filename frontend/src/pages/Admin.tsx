@@ -2,11 +2,25 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useState } from "react";
 
+type AdminBookEdit = { title: string; author_name: string; description: string; genres: string; language: string };
+
 export default function Admin() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"stats"|"users"|"reports"|"books">("stats");
 
   const [reportFilter, setReportFilter] = useState<"open"|"resolved"|"dismissed"|"all">("open");
+
+  // Admin book edit state
+  const [adminEditId, setAdminEditId] = useState<number | null>(null);
+  const [adminEditForm, setAdminEditForm] = useState<AdminBookEdit>({ title: "", author_name: "", description: "", genres: "", language: "uk" });
+  const [adminEditErr, setAdminEditErr] = useState("");
+
+  const openAdminEdit = (b: any) => {
+    setAdminEditId(b.id);
+    setAdminEditForm({ title: b.title, author_name: b.author_name || "", description: b.description || "", genres: (b.genres || []).join(", "), language: b.language || "uk" });
+    setAdminEditErr("");
+  };
+  const closeAdminEdit = () => { setAdminEditId(null); setAdminEditErr(""); };
 
   const { data: stats } = useQuery({ queryKey: ["admin-stats"], queryFn: async () => (await api.get("/api/admin/stats")).data });
   const { data: users = [] } = useQuery({ queryKey: ["admin-users"], queryFn: async () => (await api.get("/api/admin/users")).data, enabled: tab==="users" });
@@ -39,6 +53,14 @@ export default function Admin() {
   const unbanBook = useMutation({
     mutationFn: async (id: number) => (await api.post(`/api/admin/content/book/${id}/unban`)).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-books"] }),
+  });
+  const adminEdit = useMutation({
+    mutationFn: async () => {
+      const genres_list = adminEditForm.genres.split(",").map((g: string) => g.trim()).filter(Boolean);
+      return (await api.put(`/api/books/${adminEditId}`, { title: adminEditForm.title, author_name: adminEditForm.author_name, description: adminEditForm.description, genres: genres_list, language: adminEditForm.language })).data;
+    },
+    onSuccess: () => { closeAdminEdit(); qc.invalidateQueries({ queryKey: ["admin-books"] }); },
+    onError: (e: any) => setAdminEditErr(e?.response?.data?.detail || "Помилка"),
   });
 
   const statLabels: Record<string, string> = {
@@ -160,16 +182,42 @@ export default function Admin() {
             <thead><tr className="text-left border-b"><th className="p-3">ID</th><th>Назва</th><th>Автор</th><th className="p-3">Статус</th><th className="p-3 text-center">Перегляди</th><th></th></tr></thead>
             <tbody>
               {allBooks.map((b: any) => (
-                <tr key={b.id} className="border-b last:border-0">
-                  <td className="p-3">{b.id}</td><td className="p-3">{b.title}</td><td className="p-3">{b.author_name}</td><td className="p-3">{bookStatusLabel[b.status] || b.status}</td><td className="p-3 text-center">{b.views}</td>
-                  <td className="p-3">
-                    {b.status === "banned" ? (
-                      <button className="text-xs py-1 px-2 rounded border border-green-700 text-green-400 hover:bg-green-900/30" onClick={()=>unbanBook.mutate(b.id)}>Розблокувати</button>
-                    ) : (
-                      <button className="btn-danger text-xs py-1" onClick={()=>delContent.mutate({type:"book", id:b.id})}>Забанити</button>
-                    )}
-                  </td>
-                </tr>
+                <>
+                  <tr key={b.id} className="border-b last:border-0">
+                    <td className="p-3">{b.id}</td><td className="p-3">{b.title}</td><td className="p-3">{b.author_name}</td><td className="p-3">{bookStatusLabel[b.status] || b.status}</td><td className="p-3 text-center">{b.views}</td>
+                    <td className="p-3">
+                      <div className="flex gap-1">
+                        <button className="text-xs py-1 px-2 rounded border border-amber-600 text-amber-400 hover:bg-amber-900/30" onClick={() => adminEditId === b.id ? closeAdminEdit() : openAdminEdit(b)}>Редагувати</button>
+                        {b.status === "banned" ? (
+                          <button className="text-xs py-1 px-2 rounded border border-green-700 text-green-400 hover:bg-green-900/30" onClick={()=>unbanBook.mutate(b.id)}>Розблокувати</button>
+                        ) : (
+                          <button className="btn-danger text-xs py-1" onClick={()=>delContent.mutate({type:"book", id:b.id})}>Забанити</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {adminEditId === b.id && (
+                    <tr className="bg-surface-800/50">
+                      <td colSpan={6} className="p-4">
+                        <div className="space-y-2 max-w-xl">
+                          <div className="text-sm font-semibold text-amber-400 mb-2">Редагування книги #{b.id}</div>
+                          <input className="input text-sm" placeholder="Назва*" value={adminEditForm.title} onChange={(e)=>setAdminEditForm({...adminEditForm, title: e.target.value})}/>
+                          <input className="input text-sm" placeholder="Автор" value={adminEditForm.author_name} onChange={(e)=>setAdminEditForm({...adminEditForm, author_name: e.target.value})}/>
+                          <textarea className="input text-sm" rows={2} placeholder="Опис" value={adminEditForm.description} onChange={(e)=>setAdminEditForm({...adminEditForm, description: e.target.value})}/>
+                          <input className="input text-sm" placeholder="Жанри (через кому)" value={adminEditForm.genres} onChange={(e)=>setAdminEditForm({...adminEditForm, genres: e.target.value})}/>
+                          <select className="input text-sm" value={adminEditForm.language} onChange={(e)=>setAdminEditForm({...adminEditForm, language: e.target.value})}>
+                            <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
+                          </select>
+                          {adminEditErr && <div className="text-red-500 text-xs">{adminEditErr}</div>}
+                          <div className="flex gap-2">
+                            <button className="btn-primary text-sm py-1" disabled={adminEdit.isPending || !adminEditForm.title} onClick={() => { setAdminEditErr(""); adminEdit.mutate(); }}>Зберегти</button>
+                            <button className="btn-ghost text-sm py-1" onClick={closeAdminEdit}>Скасувати</button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>

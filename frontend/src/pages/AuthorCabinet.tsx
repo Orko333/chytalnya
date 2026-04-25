@@ -3,7 +3,9 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { Book } from "@/api/types";
 import { Link } from "react-router-dom";
-import { Upload, BarChart3, Trash2 } from "lucide-react";
+import { Upload, BarChart3, Trash2, Pencil } from "lucide-react";
+
+type EditForm = { title: string; author_name: string; description: string; genres: string; language: string };
 
 export default function AuthorCabinet() {
   const qc = useQueryClient();
@@ -22,6 +24,18 @@ export default function AuthorCabinet() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
   const [err, setErr] = useState("");
+
+  // Edit state
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<EditForm>({ title: "", author_name: "", description: "", genres: "", language: "uk" });
+  const [editErr, setEditErr] = useState("");
+
+  const openEdit = (b: Book) => {
+    setEditId(b.id);
+    setEditForm({ title: b.title, author_name: b.author_name, description: b.description, genres: b.genres.join(", "), language: b.language });
+    setEditErr("");
+  };
+  const closeEdit = () => { setEditId(null); setEditErr(""); };
 
   const upload = useMutation({
     mutationFn: async () => {
@@ -43,6 +57,21 @@ export default function AuthorCabinet() {
   const del = useMutation({
     mutationFn: async (id: number) => (await api.delete(`/api/books/${id}`)).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-books"] }),
+  });
+
+  const edit = useMutation({
+    mutationFn: async () => {
+      const genres_list = editForm.genres.split(",").map(g => g.trim()).filter(Boolean);
+      return (await api.put(`/api/books/${editId}`, {
+        title: editForm.title,
+        author_name: editForm.author_name,
+        description: editForm.description,
+        genres: genres_list,
+        language: editForm.language,
+      })).data;
+    },
+    onSuccess: () => { closeEdit(); qc.invalidateQueries({ queryKey: ["my-books"] }); },
+    onError: (e: any) => setEditErr(e?.response?.data?.detail || "Помилка збереження"),
   });
 
   return (
@@ -85,14 +114,35 @@ export default function AuthorCabinet() {
 
       <div className="grid md:grid-cols-2 gap-3">
         {books.map((b) => (
-          <div key={b.id} className="card p-4 flex items-center gap-3">
-            <div className="w-14 h-20 rounded bg-gradient-to-br from-brand-200 to-brand-400 flex items-center justify-center text-white font-serif text-xl shrink-0">{b.title.slice(0,2)}</div>
-            <div className="flex-1 min-w-0">
-              <Link to={`/books/${b.id}`} className="font-semibold hover:underline line-clamp-1">{b.title}</Link>
-              <div className="text-xs text-slate-500">{b.views} переглядів • {b.reviews_count} рецензій • ⭐{b.avg_rating.toFixed(1)}</div>
+          <div key={b.id} className="card p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-20 rounded bg-gradient-to-br from-brand-200 to-brand-400 flex items-center justify-center text-white font-serif text-xl shrink-0">{b.title.slice(0,2)}</div>
+              <div className="flex-1 min-w-0">
+                <Link to={`/books/${b.id}`} className="font-semibold hover:underline line-clamp-1">{b.title}</Link>
+                <div className="text-xs text-slate-500">{b.views} переглядів • {b.reviews_count} рецензій • ⭐{b.avg_rating.toFixed(1)}</div>
+              </div>
+              <Link to={`/author/analytics/${b.id}`} className="btn-ghost p-2" title="Аналітика"><BarChart3 className="w-4 h-4"/></Link>
+              <button className="btn-ghost p-2 text-amber-400" title="Редагувати" onClick={() => editId === b.id ? closeEdit() : openEdit(b)}><Pencil className="w-4 h-4"/></button>
+              <button className="btn-ghost p-2 text-red-600" onClick={() => confirm(`Видалити «${b.title}»?`) && del.mutate(b.id)}><Trash2 className="w-4 h-4"/></button>
             </div>
-            <Link to={`/author/analytics/${b.id}`} className="btn-ghost p-2" title="Аналітика"><BarChart3 className="w-4 h-4"/></Link>
-            <button className="btn-ghost p-2 text-red-600" onClick={() => confirm(`Видалити «${b.title}»?`) && del.mutate(b.id)}><Trash2 className="w-4 h-4"/></button>
+
+            {editId === b.id && (
+              <div className="border-t border-surface-300 pt-3 space-y-2">
+                <h3 className="text-sm font-semibold text-amber-400">Редагування</h3>
+                <input className="input text-sm" placeholder="Назва*" value={editForm.title} onChange={(e)=>setEditForm({...editForm, title: e.target.value})}/>
+                <input className="input text-sm" placeholder="Автор" value={editForm.author_name} onChange={(e)=>setEditForm({...editForm, author_name: e.target.value})}/>
+                <textarea className="input text-sm" rows={2} placeholder="Опис" value={editForm.description} onChange={(e)=>setEditForm({...editForm, description: e.target.value})}/>
+                <input className="input text-sm" placeholder="Жанри (через кому)" value={editForm.genres} onChange={(e)=>setEditForm({...editForm, genres: e.target.value})}/>
+                <select className="input text-sm" value={editForm.language} onChange={(e)=>setEditForm({...editForm, language: e.target.value})}>
+                  <option value="uk">Українська</option><option value="en">Англійська</option><option value="pl">Польська</option>
+                </select>
+                {editErr && <div className="text-red-500 text-xs">{editErr}</div>}
+                <div className="flex gap-2">
+                  <button className="btn-primary text-sm py-1" disabled={edit.isPending || !editForm.title} onClick={() => { setEditErr(""); edit.mutate(); }}>Зберегти</button>
+                  <button className="btn-ghost text-sm py-1" onClick={closeEdit}>Скасувати</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
