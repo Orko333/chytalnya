@@ -94,13 +94,13 @@ export default function Profile() {
               {followToggle.isPending
                 ? <Loader2 className="w-4 h-4 animate-spin"/>
                 : profile.is_following
-                  ? <><UserCheck className="w-4 h-4"/>Ви підписані</>
-                  : <><UserPlus className="w-4 h-4"/>Підписатись</>}
+                  ? <><UserCheck className="w-4 h-4"/>Ви стежите</>
+                  : <><UserPlus className="w-4 h-4"/>Стежити</>}
             </button>
           )}
           {!me && !isSelf && (
             <Link to="/login" className="mt-3 btn-ghost text-sm flex items-center gap-2 w-fit">
-              <Users className="w-4 h-4"/>Увійдіть, щоб підписатись
+              <Users className="w-4 h-4"/>Увійдіть, щоб стежити
             </Link>
           )}
         </div>
@@ -113,10 +113,11 @@ export default function Profile() {
             <div>
               <div className="flex items-center gap-2 text-amber-400 font-semibold mb-1">
                 <Crown className="w-5 h-5"/>
-                Підписка на автора
+                Платна підписка на автора
               </div>
+              <p className="text-xs text-slate-400 mb-2">Підписники отримують доступ до всіх преміум книг цього автора</p>
               {authorPlan.description && (
-                <p className="text-sm text-slate-400 mb-1">{authorPlan.description}</p>
+                <p className="text-sm text-slate-300 mb-1">{authorPlan.description}</p>
               )}
               <div className="text-lg font-bold">
                 ${authorPlan.price_monthly.toFixed(2)}
@@ -154,8 +155,8 @@ export default function Profile() {
                     Підписатись — ${authorPlan.price_monthly.toFixed(2)}/міс
                   </button>
                 ) : (
-                  <Link to="/login" className="btn-primary text-sm">
-                    Увійдіть, щоб підписатись
+                  <Link to="/login" className="btn-primary text-sm flex items-center gap-2">
+                    <Crown className="w-4 h-4"/>Увійдіть, щоб підписатись
                   </Link>
                 )
               )}

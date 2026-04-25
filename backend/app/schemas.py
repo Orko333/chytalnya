@@ -99,6 +99,7 @@ class BookOut(ORMBase):
     language: str = "uk"
     is_premium: bool = False
     owner_id: int
+    owner_username: str = ""
     has_text: bool = False
     has_audio: bool = False
     audio_url: str = ""

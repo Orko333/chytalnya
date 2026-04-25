@@ -13,6 +13,7 @@ def book_to_out(db: Session, book: models.Book) -> schemas.BookOut:
         description=book.description or "", cover_url=book.cover_url or "",
         genres=book.genres or [], language=book.language or "uk",
         is_premium=book.is_premium, owner_id=book.owner_id,
+        owner_username=book.owner.username if book.owner else "",
         has_text=bool(book.text_path) or bool(getattr(book, "text_url", "")) or (book.total_chars or 0) > 0,  # noqa: E501
         has_audio=bool(book.audio_path) or bool(book.audio_url) or bool(book.text_path),
         audio_url=book.audio_url or "",

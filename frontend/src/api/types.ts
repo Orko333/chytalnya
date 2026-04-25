@@ -7,7 +7,7 @@ export type UserPublic = {
 };
 export type Book = {
   id: number; title: string; author_name: string; description: string; cover_url: string;
-  genres: string[]; language: string; is_premium: boolean; owner_id: number;
+  genres: string[]; language: string; is_premium: boolean; owner_id: number; owner_username: string;
   has_text: boolean; has_audio: boolean; audio_url: string; text_url: string;
   total_chars: number; total_seconds: number;
   status: string; views: number; avg_rating: number; reviews_count: number; created_at: string;

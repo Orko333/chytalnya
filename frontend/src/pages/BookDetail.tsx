@@ -80,25 +80,46 @@ export default function BookDetail() {
                 Преміум книга
               </div>
               <p className="text-xs text-slate-400">Для читання потрібна підписка</p>
+
               {access.requires === "login" && (
                 <Link to="/login" className="btn-primary w-full text-sm flex items-center justify-center gap-2">
                   Увійдіть, щоб читати
                 </Link>
               )}
-              {access.requires === "platform_premium" && (
-                <Link to="/subscriptions" className="btn-primary w-full text-sm flex items-center justify-center gap-2">
-                  <Crown className="w-4 h-4"/>
-                  Преміум — ${access.platform_sub_price}/міс
-                </Link>
-              )}
-              {access.requires === "author_sub" && access.author_sub_price && (
-                <button
-                  className="btn-primary w-full text-sm flex items-center justify-center gap-2"
-                  onClick={() => setAuthorSubOpen(true)}
-                >
-                  <Crown className="w-4 h-4"/>
-                  Підписка на автора — ${access.author_sub_price}/міс
-                </button>
+
+              {access.requires !== "login" && (
+                <div className="space-y-2">
+                  {/* Option 1: Subscribe to this author */}
+                  {access.author_sub_price != null && (
+                    <button
+                      className="btn-primary w-full text-sm flex items-center justify-center gap-2"
+                      onClick={() => setAuthorSubOpen(true)}
+                    >
+                      <Crown className="w-4 h-4"/>
+                      Підписка на автора — ${access.author_sub_price}/міс
+                    </button>
+                  )}
+
+                  {/* Option 2: Platform premium — always shown */}
+                  <Link
+                    to="/subscriptions"
+                    className={`w-full text-sm flex items-center justify-center gap-2 ${access.author_sub_price != null ? "btn-ghost" : "btn-primary"}`}
+                  >
+                    <Crown className="w-4 h-4"/>
+                    Читальня Преміум — ${access.platform_sub_price}/міс
+                    {access.author_sub_price != null && <span className="text-slate-400 text-xs ml-1">(всі книги)</span>}
+                  </Link>
+
+                  {/* Author profile link */}
+                  {book.owner_username && (
+                    <Link
+                      to={`/profile/${book.owner_username}`}
+                      className="text-xs text-slate-400 hover:text-brand-400 text-center block pt-1"
+                    >
+                      Профіль автора @{book.owner_username} →
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
           ) : (
@@ -119,7 +140,11 @@ export default function BookDetail() {
           <span className="badge bg-slate-100 text-slate-600">{book.language.toUpperCase()}</span>
         </div>
         <h1 className="text-3xl font-bold mb-1">{book.title}</h1>
-        <div className="text-slate-600 mb-3">{book.author_name}</div>
+        <div className="text-slate-600 mb-3">
+          {book.owner_username
+            ? <Link to={`/profile/${book.owner_username}`} className="hover:underline hover:text-brand-600">{book.author_name}</Link>
+            : book.author_name}
+        </div>
         <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
           <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-amber-400 text-amber-400"/>{book.avg_rating.toFixed(1)} ({book.reviews_count} рецензій)</span>
           <span>{book.views} переглядів</span>
