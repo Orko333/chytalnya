@@ -45,11 +45,21 @@ export default function Subscriptions() {
   const inactiveSubs = subs.filter((s) => s.status !== "active");
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4 space-y-8">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <Crown className="w-7 h-7 text-amber-400" />
-        Мої підписки на авторів
-      </h1>
+    <div className="space-y-8">
+      {/* Full-bleed dark hero — breaks out of Layout padding */}
+      <div className="-mx-4 -mt-6 px-4 pt-10 pb-8"
+        style={{ background: "linear-gradient(180deg, rgba(15,14,23,1) 0%, rgba(15,14,23,0.85) 100%)" }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Crown className="w-7 h-7 text-amber-400" />
+            Мої підписки на авторів
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">Управляйте вашими підписками на авторів</p>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-4 space-y-8">
 
       {/* Active subscriptions */}
       <section>
@@ -179,6 +189,7 @@ export default function Subscriptions() {
           </div>
         )}
       </section>
+      </div>
     </div>
   );
 }

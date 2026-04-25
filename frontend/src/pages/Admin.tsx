@@ -6,9 +6,10 @@ type AdminBookEdit = { title: string; author_name: string; description: string; 
 
 export default function Admin() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"stats"|"users"|"reports"|"books">("stats");
+  const [tab, setTab] = useState<"stats"|"users"|"reports"|"books"|"subs">("stats");
 
   const [reportFilter, setReportFilter] = useState<"open"|"resolved"|"dismissed"|"all">("open");
+  const [subsFilter, setSubsFilter] = useState<"active"|"canceled"|"all">("active");
 
   // Admin book edit state
   const [adminEditId, setAdminEditId] = useState<number | null>(null);
@@ -26,6 +27,12 @@ export default function Admin() {
   const { data: users = [] } = useQuery({ queryKey: ["admin-users"], queryFn: async () => (await api.get("/api/admin/users")).data, enabled: tab==="users" });
   const { data: reports = [] } = useQuery({ queryKey: ["admin-reports", reportFilter], queryFn: async () => (await api.get(`/api/admin/reports${reportFilter !== "all" ? `?status=${reportFilter}` : ""}`)).data, enabled: tab==="reports" });
   const { data: allBooks = [] } = useQuery({ queryKey: ["admin-books"], queryFn: async () => (await api.get("/api/admin/books")).data, enabled: tab==="books" });
+  const { data: allSubs = [] } = useQuery({ queryKey: ["admin-subs", subsFilter], queryFn: async () => (await api.get(`/api/admin/subscriptions${subsFilter !== "all" ? `?status=${subsFilter}` : ""}`)).data, enabled: tab==="subs" });
+
+  const cancelAdminSub = useMutation({
+    mutationFn: async (subId: number) => (await api.post(`/api/admin/subscriptions/${subId}/cancel`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-subs"] }),
+  });
 
   const updateUser = useMutation({
     mutationFn: async ({ id, body }: any) => (await api.put(`/api/admin/users/${id}`, body)).data,
@@ -95,7 +102,7 @@ export default function Admin() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Адмін-панель</h1>
       <div className="flex gap-2 border-b border-surface-300">
-        {[["stats","Статистика"],["users","Користувачі"],["reports","Скарги"],["books","Книги"]].map(([k,l]) => (
+        {[["stats","Статистика"],["users","Користувачі"],["reports","Скарги"],["books","Книги"],["subs","Підписки"]].map(([k,l]) => (
           <button key={k} onClick={()=>setTab(k as any)} className={`px-4 py-2 text-sm ${tab===k?"border-b-2 border-amber-500 text-amber-400":"text-parchment-300"}`}>{l}</button>
         ))}
       </div>
@@ -221,6 +228,51 @@ export default function Admin() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {tab==="subs" && (
+        <div className="space-y-3">
+          <div className="flex gap-2 text-sm">
+            {(["active","canceled","all"] as const).map(s => (
+              <button key={s} onClick={()=>setSubsFilter(s)} className={`px-3 py-1 rounded-full border ${subsFilter===s?"border-amber-500 text-amber-400 bg-amber-500/10":"border-surface-300 text-parchment-400"}`}>
+                {{active:"Активні",canceled:"Скасовані",all:"Всі"}[s]}
+              </button>
+            ))}
+          </div>
+          {allSubs.length===0 && <div className="text-slate-500 text-center p-8">Підписок немає</div>}
+          <div className="card overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="text-left border-b text-parchment-400 text-xs uppercase tracking-wide"><th className="p-3">ID</th><th className="p-3">Читач</th><th className="p-3">Автор</th><th className="p-3">Ціна</th><th className="p-3">Початок</th><th className="p-3">Кінець</th><th className="p-3">Статус</th><th className="p-3"></th></tr></thead>
+              <tbody>
+                {allSubs.map((s: any) => (
+                  <tr key={s.id} className="border-b last:border-0">
+                    <td className="p-3 text-slate-500">{s.id}</td>
+                    <td className="p-3">@{s.user_username}</td>
+                    <td className="p-3">@{s.author_username}</td>
+                    <td className="p-3">${s.price_monthly?.toFixed(2)}/міс</td>
+                    <td className="p-3 text-slate-400 text-xs">{s.start_date ? s.start_date.slice(0,10) : "—"}</td>
+                    <td className="p-3 text-slate-400 text-xs">{s.end_date ? s.end_date.slice(0,10) : "—"}</td>
+                    <td className="p-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${s.status==="active"?"bg-green-500/20 text-green-400":"bg-slate-700 text-slate-400"}`}>
+                        {s.status==="active"?"Активна":"Скасована"}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {s.status==="active" && (
+                        <button
+                          className="text-xs py-1 px-2 rounded border border-red-700 text-red-400 hover:bg-red-900/30"
+                          disabled={cancelAdminSub.isPending}
+                          onClick={()=>cancelAdminSub.mutate(s.id)}
+                        >
+                          Скасувати
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

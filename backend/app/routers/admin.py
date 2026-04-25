@@ -100,6 +100,54 @@ def unban_book(book_id: int, db: Session = Depends(get_db), admin: models.User =
     return {"status": "published"}
 
 
+@router.get("/subscriptions")
+def list_author_subs(
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_admin),
+    status: Optional[str] = None,
+):
+    """List all user → author subscriptions for admin management."""
+    q = db.query(models.UserAuthorSub)
+    if status:
+        q = q.filter(models.UserAuthorSub.status == status)
+    subs = q.order_by(models.UserAuthorSub.id.desc()).limit(500).all()
+    result = []
+    for s in subs:
+        user = db.query(models.User).filter_by(id=s.user_id).first()
+        author = db.query(models.User).filter_by(id=s.author_id).first()
+        plan = db.query(models.AuthorSubPlan).filter_by(author_id=s.author_id).first()
+        result.append({
+            "id": s.id,
+            "user_id": s.user_id,
+            "user_username": user.username if user else "",
+            "author_id": s.author_id,
+            "author_username": author.username if author else "",
+            "price_monthly": plan.price_monthly if plan else 0.0,
+            "status": s.status,
+            "start_date": s.start_date.isoformat() if s.start_date else None,
+            "end_date": s.end_date.isoformat() if s.end_date else None,
+        })
+    return result
+
+
+@router.post("/subscriptions/{sub_id}/cancel")
+def cancel_author_sub(
+    sub_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_admin),
+):
+    """Force-cancel an author subscription."""
+    sub = db.query(models.UserAuthorSub).filter_by(id=sub_id).first()
+    if not sub:
+        raise HTTPException(404, "Subscription not found")
+    sub.status = "canceled"
+    db.commit()
+    return {"status": "canceled"}
+
+
+# ── Platform stats ────────────────────────────────────────────────────────────
+
+
 @router.get("/stats")
 def platform_stats(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     return {
@@ -109,7 +157,7 @@ def platform_stats(db: Session = Depends(get_db), admin: models.User = Depends(r
         "books_published": db.query(func.count(models.Book.id)).filter_by(status="published").scalar() or 0,
         "reviews": db.query(func.count(models.Review.id)).scalar() or 0,
         "reports_open": db.query(func.count(models.ContentReport.id)).filter_by(status="open").scalar() or 0,
-        "premium_subs": db.query(func.count(models.UserSubscription.id)).filter_by(plan_code="premium", status="active").scalar() or 0,
+        "premium_subs": db.query(func.count(models.UserAuthorSub.id)).filter_by(status="active").scalar() or 0,
     }
 
 
