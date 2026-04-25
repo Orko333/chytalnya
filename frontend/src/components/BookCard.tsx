@@ -62,13 +62,10 @@ export default function BookCard({ book, completed }: { book: Book; completed?: 
             }}
           />
 
-          {/* Format badges */}
-          <div className="absolute bottom-2 left-2 flex gap-1">
-
-          {/* "Already read" badge — top-right corner */}
+          {/* "Already read" badge — top center */}
           {completed && (
             <div
-              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold z-10"
+              className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold z-10 whitespace-nowrap"
               style={{
                 background: "rgba(34, 197, 94, 0.92)",
                 color: "#fff",
@@ -80,6 +77,9 @@ export default function BookCard({ book, completed }: { book: Book; completed?: 
               Прочитано
             </div>
           )}
+
+          {/* Format badges */}
+          <div className="absolute bottom-2 left-2 flex gap-1">
             {book.has_text && (
               <span
                 className="badge text-[10px]"
