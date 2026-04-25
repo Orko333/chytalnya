@@ -1,10 +1,9 @@
-"""Content-based + naive collaborative recommender."""
+"""Content-based + naive collaborative recommender (pure numpy, no sklearn)."""
+from collections import Counter
 from typing import List, Tuple
 
 import numpy as np
 from sqlalchemy.orm import Session
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 from app import models
 
@@ -12,6 +11,39 @@ from app import models
 def _book_doc(b: models.Book) -> str:
     parts = [b.title or "", b.author_name or "", b.description or "", " ".join(b.genres or []), b.language or ""]
     return " ".join(parts).lower()
+
+
+def _tfidf_matrix(docs: List[str], max_features: int = 5000):
+    """Minimal TF-IDF using pure Python + numpy (replaces sklearn.TfidfVectorizer)."""
+    tokenized = [doc.split() for doc in docs]
+    # Build vocabulary
+    df: Counter = Counter()
+    for tokens in tokenized:
+        df.update(set(tokens))
+    vocab = [w for w, _ in df.most_common(max_features)]
+    vocab_idx = {w: i for i, w in enumerate(vocab)}
+    n_docs = len(docs)
+    n_vocab = len(vocab)
+    X = np.zeros((n_docs, n_vocab), dtype=np.float32)
+    for d, tokens in enumerate(tokenized):
+        tf: Counter = Counter(tokens)
+        for w, cnt in tf.items():
+            if w in vocab_idx:
+                X[d, vocab_idx[w]] = cnt / len(tokens) if tokens else 0
+    # IDF
+    idf = np.log((1 + n_docs) / (1 + np.array([df[w] for w in vocab], dtype=np.float32))) + 1
+    X = X * idf
+    # L2 normalise
+    norms = np.linalg.norm(X, axis=1, keepdims=True)
+    norms[norms == 0] = 1
+    X = X / norms
+    return X
+
+
+def _cosine_similarity_vec(query: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Cosine similarity of 1-D query against each row in matrix (already L2-normalised)."""
+    q = query / (np.linalg.norm(query) or 1)
+    return matrix @ q
 
 
 def recommend_for_user(db: Session, user_id: int, k: int = 12) -> List[Tuple[models.Book, float, str]]:
@@ -36,14 +68,12 @@ def recommend_for_user(db: Session, user_id: int, k: int = 12) -> List[Tuple[mod
         return [(b, 0.0, "Популярне зараз") for b in ranked[:k]]
 
     try:
-        vec = TfidfVectorizer(min_df=1, stop_words=None, max_features=5000)
-        X = vec.fit_transform(docs)
+        X = _tfidf_matrix(docs, max_features=5000)
         seed_idxs = [idx_by_id[i] for i in seed_ids if i in idx_by_id]
         if not seed_idxs:
             return []
         seed_vec = X[seed_idxs].mean(axis=0)
-        seed_arr = np.asarray(seed_vec)
-        sims = cosine_similarity(seed_arr, X).flatten()
+        sims = _cosine_similarity_vec(seed_vec, X)
     except Exception:
         sims = np.zeros(len(books))
 
