@@ -147,11 +147,13 @@ def list_books(
         query = query.order_by(models.Book.views.desc())
     elif sort == "rating":
         avg_sub = (
-            db.query(models.Review.book_id, func.coalesce(func.avg(models.Review.rating), 0).label("avg_r"))
+            db.query(models.Review.book_id, func.avg(models.Review.rating).label("avg_r"))
             .group_by(models.Review.book_id)
             .subquery()
         )
-        query = query.outerjoin(avg_sub, models.Book.id == avg_sub.c.book_id).order_by(avg_sub.c.avg_r.desc())
+        query = query.outerjoin(avg_sub, models.Book.id == avg_sub.c.book_id).order_by(
+            func.coalesce(avg_sub.c.avg_r, 0).desc()
+        )
     else:
         query = query.order_by(models.Book.created_at.desc())
     books = query.offset(offset).limit(limit).all()
