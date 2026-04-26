@@ -66,10 +66,11 @@ export default function Player() {
         const p = (await api.get<Progress>(`/api/books/${bookId}/progress`)).data;
         setProgress(p);
         const BASE = import.meta.env.VITE_API_URL || "";
-        const token = localStorage.getItem("token") || "";
+        const token = localStorage.getItem("access_token") || "";
         const audioUrl = `${BASE}/api/books/${bookId}/stream/audio?token=${encodeURIComponent(token)}`;
-        // Pre-flight HEAD check to catch 403 (premium gate) before setting src
-        const check = await fetch(audioUrl, { method: "HEAD" });
+        // Pre-flight GET check to catch 403 (premium gate) before setting src
+        // HEAD is not supported by the backend stream route, use GET with Range: bytes=0-0
+        const check = await fetch(audioUrl, { method: "GET", headers: { Range: "bytes=0-0" } });
         if (check.status === 403) {
           setErr("Ця книга доступна лише за підпискою. Поверніться до сторінки книги.");
           return;
