@@ -17,7 +17,7 @@ from app import models, schemas
 from app.core.database import get_db
 from app.core.storage import save_upload, absolute_path, delete_file
 from app.core.config import settings
-from app.deps import get_current_user, get_current_user_optional
+from app.deps import get_current_user, get_current_user_optional, get_stream_user_optional
 from app.services.catalog_sync import live_sync_books
 from app.utils import book_to_out
 
@@ -269,7 +269,7 @@ def delete_book(book_id: int, db: Session = Depends(get_db), current: models.Use
 
 # ===== Streaming =====
 @router.get("/{book_id}/stream/text")
-async def stream_text(book_id: int, db: Session = Depends(get_db), current: Optional[models.User] = Depends(get_current_user_optional)):
+async def stream_text(book_id: int, db: Session = Depends(get_db), current: Optional[models.User] = Depends(get_stream_user_optional)):
     b = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not b:
         raise HTTPException(404, "Book not found")
@@ -423,7 +423,7 @@ _RANGE_RE = re.compile(r"bytes=(\d*)-(\d*)")
 
 
 @router.get("/{book_id}/stream/audio")
-async def stream_audio(book_id: int, request: Request, db: Session = Depends(get_db), current: Optional[models.User] = Depends(get_current_user_optional)):
+async def stream_audio(book_id: int, request: Request, db: Session = Depends(get_db), current: Optional[models.User] = Depends(get_stream_user_optional)):
     b = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not b:
         raise HTTPException(404, "Book not found")

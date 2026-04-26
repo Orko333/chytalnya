@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, HTTPException, status, Header
+from fastapi import Depends, HTTPException, status, Header, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -40,6 +40,26 @@ def get_current_user_optional(
         return get_current_user(authorization, db)
     except HTTPException:
         return None
+
+
+def get_stream_user_optional(
+    authorization: Optional[str] = Header(default=None),
+    token: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db),
+) -> Optional[models.User]:
+    """Like get_current_user_optional but also accepts ?token= query param.
+    Used for stream endpoints where the browser <audio>/<video> element
+    cannot send Authorization headers."""
+    raw = _token_from_header(authorization) or token
+    if not raw:
+        return None
+    payload = decode_token(raw)
+    if not payload or payload.get("type") != "access":
+        return None
+    user = db.query(models.User).filter(models.User.id == int(payload["sub"])).first()
+    if not user or not user.is_active:
+        return None
+    return user
 
 
 def require_roles(*roles: str):
