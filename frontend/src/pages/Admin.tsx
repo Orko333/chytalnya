@@ -239,12 +239,14 @@ export default function Admin() {
               </button>
             ))}
           </div>
-          {allSubs.length===0 && <div className="text-slate-500 text-center p-8">Підписок немає</div>}
           <div className="card overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="text-left border-b text-parchment-400 text-xs uppercase tracking-wide"><th className="p-3">ID</th><th className="p-3">Читач</th><th className="p-3">Автор</th><th className="p-3">Ціна</th><th className="p-3">Початок</th><th className="p-3">Кінець</th><th className="p-3">Статус</th><th className="p-3"></th></tr></thead>
               <tbody>
-                {allSubs.map((s: any) => (
+                {allSubs.length===0 && (
+                  <tr><td colSpan={8} className="p-8 text-center text-slate-500">Підписок немає</td></tr>
+                )}
+                {[...allSubs].sort((a:any,b:any)=>b.id-a.id).map((s: any) => (
                   <tr key={s.id} className="border-b last:border-0">
                     <td className="p-3 text-slate-500">{s.id}</td>
                     <td className="p-3">@{s.user_username}</td>
