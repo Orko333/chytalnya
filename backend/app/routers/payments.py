@@ -117,7 +117,17 @@ def has_book_access(book: models.Book, user: Optional[models.User], db: Session)
     if book.owner_id == user.id:
         return True
     now = datetime.now(timezone.utc)
-    # Author subscription only
+    # Platform premium subscription
+    p_sub = db.query(models.UserSubscription).filter_by(
+        user_id=user.id, plan_code="premium", status="active"
+    ).first()
+    if p_sub:
+        ed = p_sub.end_date
+        if ed and ed.tzinfo is None:
+            ed = ed.replace(tzinfo=timezone.utc)
+        if ed is None or ed > now:
+            return True
+    # Author subscription
     a_sub = db.query(models.UserAuthorSub).filter_by(
         user_id=user.id, author_id=book.owner_id, status="active"
     ).first()
